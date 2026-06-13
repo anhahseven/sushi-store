@@ -1,0 +1,49 @@
+<div class="min-h-screen flex items-center justify-center px-4 py-12 lg:pt-24">
+    <div class="w-full max-w-md bg-white p-6 lg:p-8 rounded-3xl shadow-xl border border-gray-100 text-center">
+        
+        <div class="mb-6 animate-bounce">
+            <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                <i class="fa-solid fa-check text-3xl"></i>
+            </div>
+        </div>
+
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Confirm Payment</h1>
+        <p class="text-gray-500 text-sm mb-8">Order ID: <span class="font-mono font-bold text-gray-700">#<%= orderId %></span></p>
+
+        <div class="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-100">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total Amount</p>
+            <p class="text-4xl font-extrabold text-indigo-600 tracking-tight"><%= amount %> $</p>
+        </div>
+
+        <form action="<%= abaUrl %>" method="POST" id="aba_form">
+            
+            <input type="hidden" name="hash" value="<%= abaPayload.hash %>">
+            <input type="hidden" name="tran_id" value="<%= orderId %>">
+            <input type="hidden" name="amount" value="<%= amount %>">
+            <input type="hidden" name="req_time" value="<%= abaPayload.reqTime %>">
+            <input type="hidden" name="merchant_id" value="<%= abaPayload.merchantId %>">
+            <input type="hidden" name="firstname" value="<%= abaPayload.cfirstname %>">
+            <input type="hidden" name="lastname" value="<%= abaPayload.clastname %>">
+<input type="hidden" name="items" value="<%= abaPayload.items %>">
+<input type="hidden" name="shipping" value="<%= abaPayload.shipping %>">
+            <input type="hidden" name="email" value="<%= abaPayload.cemail %>">
+            <input type="hidden" name="phone" value="<%= abaPayload.cphone %>">
+            <input type="hidden" name="type" value="<%= abaPayload.type %>">
+<input type="hidden" name="payment_option" value="<%= abaPayload.payment_option %>">
+            <input type="hidden" name="return_url" value="<%= abaPayload.return_url %>">
+<input type="hidden" name="cancel_url" value="<%= abaPayload.cancel_url %>">
+<input type="hidden" name="continue_success_url" value="<%= abaPayload.continue_success_url %>">
+<input type="hidden" name="return_deeplink" value="<%= abaPayload.return_deeplink %>">
+<input type="hidden" name="currency" value="<%= abaPayload.currency %>">
+<input type="hidden" name="custom_fields" value="<%= abaPayload.custom_fields %>">
+<input type="hidden" name="return_params" value="<%= abaPayload.return_params %>">
+<input type="hidden" name="payout" value="<%= abaPayload.payout %>">
+<input type="hidden" name="lifetime" value="<%= abaPayload.lifetime %>">
+<input type="hidden" name="additional_params" value="<%= abaPayload.additional_params %>">
+<input type="hidden" name="google_pay_token" value="<%= abaPayload.google_pay_token %>">
+<input type="hidden" name="skip_success_page" value="<%= abaPayload.skip_success_page %>">
+            <button type="submit" class="group w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-indigo-200 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-qrcode group-hover:rotate-12 transition-transform"></i>
+                <span>Pay with ABA PayWay</span>
+            </button>
+        </form>
