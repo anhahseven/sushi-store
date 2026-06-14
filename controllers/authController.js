@@ -69,6 +69,15 @@ app.post("/logout", (req, res) => {
   });
 });
 
+app.get("/logout", (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      console.error("Logout error:", err);
+    }
+    res.redirect("/login");
+  });
+});
+
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 app.get("/auth/google/secrets", passport.authenticate("google", { failureRedirect: "/login" }), (req, res) => {
