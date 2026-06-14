@@ -17,7 +17,7 @@ import adminController from "./controllers/adminController.js";
 import managerController from "./controllers/managerController.js";
 
 import { checkAuthenticated, checkRole } from "./middleware/auth.js";
-import { renderPaymentPage, confirmPayment } from "./controllers/paymentController.js";
+import { renderPaymentPage } from "./controllers/paymentController.js";
 import { processStaffCheckout } from "./controllers/orderController.js";
 
 env.config();
