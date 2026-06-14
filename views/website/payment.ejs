@@ -42,7 +42,8 @@
                     timer: 2000,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location.href = '/orders';
+                    const targetUrl = '<%= typeof user !== "undefined" && user && ["manager", "admin", "store_manager", "staff", "cashier"].includes(user.role) ? "/admin/orders" : "/orders" %>';
+                    window.location.href = targetUrl;
                 });
             } else {
                 alert(data.error || 'Payment failed');

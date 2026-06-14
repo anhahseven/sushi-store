@@ -90,8 +90,8 @@ app.post("/payment/confirm/:id", checkAuthenticated, async (req, res) => {
   try {
     const orderId = req.params.id;
     const pool = req.pool;
-    // Mark order as processing and payment method as QR
-    await pool.query("UPDATE orders SET status = 'Processing', payment_method = 'QR' WHERE id = $1", [orderId]);
+    // Mark order as completed and payment method as QR
+    await pool.query("UPDATE orders SET status = 'Completed', payment_method = 'QR' WHERE id = $1", [orderId]);
     res.json({ success: true, message: "Payment confirmed" });
   } catch (err) {
     console.error(err);
