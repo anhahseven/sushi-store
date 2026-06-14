@@ -281,4 +281,21 @@ router.get("/register", (req, res) => {
   res.render("website/auth", { title: "Login / Register - Murakami Sushi", layout: false });
 });
 
+// Staff Menu Page
+router.get("/staff/menu", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
+  try {
+    const productsRes = await pool.query("SELECT * FROM products ORDER BY id ASC");
+    const categoriesRes = await pool.query("SELECT * FROM categories ORDER BY id ASC");
+    res.render("website/menu_staff", {
+      title: "Staff POS - Murakami Sushi",
+      products: productsRes.rows,
+      categories: categoriesRes.rows,
+      layout: "layouts",
+    });
+  } catch (err) {
+    console.error("Error loading staff menu:", err);
+    res.status(500).send("Error loading staff menu");
+  }
+});
+
 export default router;
