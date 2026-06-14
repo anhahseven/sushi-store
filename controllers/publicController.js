@@ -265,14 +265,14 @@ router.get("/login", (req, res) => {
   if (req.isAuthenticated()) {
     return res.redirect("/");
   }
-  res.render("website/auth", { title: "Login / Register - Murakami Sushi" });
+  res.render("website/auth", { title: "Login / Register - Murakami Sushi", layout: false });
 });
 
 router.get("/register", (req, res) => {
   if (req.isAuthenticated()) {
     return res.redirect("/");
   }
-  res.render("website/auth", { title: "Login / Register - Murakami Sushi" });
+  res.render("website/auth", { title: "Login / Register - Murakami Sushi", layout: false });
 });
 
 export default router;
