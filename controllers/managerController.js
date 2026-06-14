@@ -14,7 +14,7 @@ router.get("/manager/daily-stock", checkAuthenticated, checkRole(["store_manager
         if (firstLoc.rows.length > 0) locId = String(firstLoc.rows[0].id);
       }
     }
-    if (!locId) return res.json({ message: "Error: No valid location found.", user: req.user });
+    if (!locId) return res.render("error", { message: "Error: No valid location found.", user: req.user });
     
     const locRes = await pool.query("SELECT name FROM locations WHERE id = $1", [locId]);
     if (locRes.rows.length === 0) return res.send("Error: Location ID not found.");
@@ -24,13 +24,13 @@ router.get("/manager/daily-stock", checkAuthenticated, checkRole(["store_manager
     const checkRes = await pool.query("SELECT * FROM daily_inventory_logs WHERE location_name = $1 AND report_date = $2", [locRes.rows[0].name, dateQuery]);
     const masterRes = await pool.query("SELECT * FROM stocks ORDER BY category, name ASC");
 
-    res.json({
+    res.render("manager/daily_stock.ejs", {
       title: "Daily Stock Count", layout: "layout", locationName: locRes.rows[0].name,
       locations: allLocs.rows, masterItems: masterRes.rows, alreadySubmitted: checkRes.rows.length > 0,
       user: req.user, currentLocationId: locId, query: { date: dateQuery, location: locId },
     });
   } catch (err) {
-    res.status(500).json({ error: "Server error" });
+    res.status(500).send("Server Error: " + err.message);
   }
 });
 
@@ -87,18 +87,18 @@ router.delete("/api/manager/daily-stock/:id", checkAuthenticated, async (req, re
 router.get("/manager/daily-stock/edit/:id", checkAuthenticated, async (req, res) => {
   try {
     const logRes = await pool.query("SELECT * FROM daily_inventory_logs WHERE id = $1", [req.params.id]);
-    if (logRes.rows.length === 0) return res.json({ success: true });
+    if (logRes.rows.length === 0) return res.redirect("/manager/daily-stock/history");
     const log = logRes.rows[0];
     const diffMinutes = (new Date() - new Date(log.created_at)) / 1000 / 60;
     
     const isAdmin = req.user.role === "admin" || req.user.role === "manager";
     if (!isAdmin && !log.is_unlocked && (req.user.id != log.user_id || diffMinutes > 5)) {
-      return res.status(400).json({ error: "Action failed" });
+      return res.send(`<script>alert('Edit time limit expired. Ask a Manager to unlock this report.'); window.location.href='/manager/daily-stock/history';</script>`);
     }
 
     const itemsRes = await pool.query("SELECT * FROM daily_inventory_items WHERE log_id = $1 ORDER BY category, item_name", [req.params.id]);
-    res.json({ log: log, items: itemsRes.rows, title: "Edit Stock Log", layout: "layout" });
-  } catch (err) { res.json({ success: true }); }
+    res.render("manager/edit_daily_log.ejs", { log: log, items: itemsRes.rows, title: "Edit Stock Log", layout: "layout" });
+  } catch (err) { res.redirect("/manager/daily-stock/history"); }
 });
 
 router.post("/api/manager/daily-stock/update/:id", checkAuthenticated, async (req, res) => {
@@ -150,33 +150,33 @@ router.get("/manager/daily-stock/history", checkAuthenticated, checkRole(["store
 
     const logsRes = await pool.query(sql, queryParams);
     const locRes = await pool.query("SELECT * FROM locations ORDER BY id ASC");
-    res.json({ title: "Stock Count History", layout: "layout", logs: logsRes.rows, locations: locRes.rows, query: req.query, user: req.user });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.render("manager/stock_history.ejs", { title: "Stock Count History", layout: "layout", logs: logsRes.rows, locations: locRes.rows, query: req.query, user: req.user });
+  } catch (err) { res.status(500).send("Server Error"); }
 });
 
 router.get("/manager/daily-stock/view/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager"]), async (req, res) => {
   try {
     const logRes = await pool.query(`SELECT l.*, u.email FROM daily_inventory_logs l LEFT JOIN users u ON l.user_id = u.id::varchar WHERE l.id = $1`, [req.params.id]);
-    if (logRes.rows.length === 0) return res.json({ success: true });
+    if (logRes.rows.length === 0) return res.redirect("/manager/daily-stock/history");
     const log = logRes.rows[0];
 
     if (req.user.role === "store_manager") {
       const locRes = await pool.query("SELECT name FROM locations WHERE id = $1", [req.user.assigned_location_id]);
-      if (locRes.rows.length > 0 && log.location_name !== locRes.rows[0].name) return res.status(500).json({ error: "Server error" });
+      if (locRes.rows.length > 0 && log.location_name !== locRes.rows[0].name) return res.status(403).send("Access Denied");
     }
 
     const itemsRes = await pool.query(`SELECT dii.*, s.image_url FROM daily_inventory_items dii LEFT JOIN stocks s ON dii.item_name = s.name WHERE dii.log_id = $1 ORDER BY dii.category, dii.item_name`, [req.params.id]);
-    res.json({ title: `Log #${req.params.id}`, log: log, items: itemsRes.rows, layout: "layout" });
-  } catch (err) { res.json({ success: true }); }
+    res.render("manager/view_daily_log.ejs", { title: `Log #${req.params.id}`, log: log, items: itemsRes.rows, layout: "layout" });
+  } catch (err) { res.redirect("/manager/daily-stock/history"); }
 });
 
 router.get("/manager/daily-stock/history/:id", checkAuthenticated, async (req, res) => {
   try {
     const logRes = await pool.query(`SELECT l.*, u.email FROM daily_inventory_logs l LEFT JOIN users u ON l.user_id = u.id::varchar WHERE l.id = $1`, [req.params.id]);
-    if (logRes.rows.length === 0) return res.status(500).json({ error: "Server error" });
+    if (logRes.rows.length === 0) return res.status(404).send("Stock Log not found");
     const itemsRes = await pool.query(`SELECT * FROM daily_inventory_items WHERE log_id = $1 ORDER BY category, item_name`, [req.params.id]);
-    res.json({ title: `Log #${req.params.id}`, log: logRes.rows[0], items: itemsRes.rows, layout: "layout" });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.render("manager/view_daily_log.ejs", { title: `Log #${req.params.id}`, log: logRes.rows[0], items: itemsRes.rows, layout: "layout" });
+  } catch (err) { res.status(500).send("Server Error"); }
 });
 
 export default router;

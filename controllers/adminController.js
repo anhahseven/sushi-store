@@ -37,9 +37,9 @@ app.get("/admin/dashboard", checkAuthenticated, checkRole(["manager", "admin", "
     const statusRes = await client.query(`SELECT status, COUNT(*) as count FROM orders WHERE 1=1 ${locationFilterClause} GROUP BY status`, queryParams);
 
     client.release();
-    res.json({ title: "Dashboard", productsCount: productCountRes.rows[0].count, userCount: userCountRes.rows[0].count, ordersCount: orderCountRes.rows[0].count, totalRevenue: parseFloat(revenueRes.rows[0].sum || 0).toFixed(2), chartData: chartRes.rows, statusData: statusRes.rows, locations: allLocationsRes.rows, currentFilter: filterLocationName || "All" });
+    res.render("admin/dashboard.ejs", { title: "Dashboard", productsCount: productCountRes.rows[0].count, userCount: userCountRes.rows[0].count, ordersCount: orderCountRes.rows[0].count, totalRevenue: parseFloat(revenueRes.rows[0].sum || 0).toFixed(2), chartData: chartRes.rows, statusData: statusRes.rows, locations: allLocationsRes.rows, currentFilter: filterLocationName || "All" });
   } catch (err) {
-    res.json({ title: "Dashboard", productsCount: 0, userCount: 0, ordersCount: 0, totalRevenue: 0, chartData: [], statusData: [], locations: [], currentFilter: "All" });
+    res.render("admin/dashboard.ejs", { title: "Dashboard", productsCount: 0, userCount: 0, ordersCount: 0, totalRevenue: 0, chartData: [], statusData: [], locations: [], currentFilter: "All" });
   }
 });
 
@@ -67,8 +67,8 @@ app.get("/admin/reports", checkAuthenticated, checkRole(["manager", "admin", "st
     let grossSales = 0, completedCount = 0;
     ordersRes.rows.forEach(o => { if (o.status === "Completed") { grossSales += parseFloat(o.total_price); completedCount++; } });
 
-    res.json({ title: "Sales Reports", orders: ordersRes.rows, stats: { grossSales: grossSales.toFixed(2), netProfit: (grossSales * 0.7).toFixed(2), avgOrderValue: completedCount > 0 ? (grossSales / completedCount).toFixed(2) : "0.00", totalTx: ordersRes.rows.length }, selectedDate, locations: allLocationsRes.rows, currentFilter: filterLocationName || "All" });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.render("admin/reports.ejs", { title: "Sales Reports", orders: ordersRes.rows, stats: { grossSales: grossSales.toFixed(2), netProfit: (grossSales * 0.7).toFixed(2), avgOrderValue: completedCount > 0 ? (grossSales / completedCount).toFixed(2) : "0.00", totalTx: ordersRes.rows.length }, selectedDate, locations: allLocationsRes.rows, currentFilter: filterLocationName || "All" });
+  } catch (err) { res.status(500).send("Server Error"); }
 });
 
 app.get("/admin/orders", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
@@ -91,16 +91,16 @@ app.get("/admin/orders", checkAuthenticated, checkRole(["manager", "admin", "sto
     query += ` ORDER BY CASE WHEN o.status LIKE '%Requested%' THEN 0 ELSE 1 END, o.created_at DESC`;
     const result = await pool.query(query, params);
     const locResult = await pool.query("SELECT * FROM locations ORDER BY name ASC");
-    res.json({ title: "Order Management", orders: result.rows, query: req.query, locations: locResult.rows });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.render("admin/orders/orders", { title: "Order Management", orders: result.rows, query: req.query, locations: locResult.rows });
+  } catch (err) { res.status(500).send("Server Error"); }
 });
 
 app.patch("/admin/orders/:id/status", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
   try {
     await pool.query("UPDATE orders SET status = $1 WHERE id = $2", [req.body.status, req.params.id]);
     const msg = encodeURIComponent(`Order ${req.params.id} set to ${req.body.status}`);
-    res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.redirect(`/admin/orders?msg=${msg}`);
+  } catch (err) { res.status(500).send("Error"); }
 });
 
 app.post("/admin/orders/handle-request/:id", checkAuthenticated, checkRole(["admin", "manager", "store_manager", "staff", "cashier"]), async (req, res) => {
@@ -112,16 +112,16 @@ app.post("/admin/orders/handle-request/:id", checkAuthenticated, checkRole(["adm
   if (action === "reject_refund") newStatus = "Completed";
   try {
     await pool.query("UPDATE orders SET status = $1 WHERE id = $2", [newStatus, req.params.id]);
-    res.json({ success: true });
-  } catch (err) { res.json({ success: true }); }
+    res.redirect("/admin/orders");
+  } catch (err) { res.redirect("/admin/orders"); }
 });
 
 app.delete("/admin/orders/delete/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager"]), async (req, res) => {
   try {
     await pool.query("DELETE FROM order_items WHERE order_id = $1", [req.params.id]);
     await pool.query("DELETE FROM orders WHERE id = $1", [req.params.id]);
-    res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.redirect("/admin/orders");
+  } catch (err) { res.status(500).send("Error"); }
 });
 
 // New delete route for singular admin/order path
@@ -130,9 +130,9 @@ app.delete("/admin/order/delete/:id", checkAuthenticated, checkRole(["manager", 
         await pool.query("DELETE FROM order_items WHERE order_id = $1", [req.params.id]);
         await pool.query("DELETE FROM orders WHERE id = $1", [req.params.id]);
         // Redirect back to the orders list after deletion
-        res.json({ success: true });
+        res.redirect("/admin/orders");
     } catch (err) {
-        res.status(500).json({ error: "Server error" });
+        res.status(500).send("Error deleting order");
     }
 });
 
@@ -140,29 +140,29 @@ app.get("/admin/orders/edit/:id", checkAuthenticated, checkRole(["manager", "adm
 // Existing edit route
   try {
     const orderRes = await pool.query(`SELECT o.*, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = $1`, [req.params.id]);
-    if (orderRes.rows.length === 0) return res.json({ success: true });
+    if (orderRes.rows.length === 0) return res.redirect("/admin/orders");
     const itemsRes = await pool.query("SELECT * FROM order_items WHERE order_id = $1", [req.params.id]);
     const locRes = await pool.query("SELECT * FROM locations");
-    res.json({ title: "Edit Order", order: orderRes.rows[0], items: itemsRes.rows, locations: locRes.rows });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.render("admin/orders/edit_order", { title: "Edit Order", order: orderRes.rows[0], items: itemsRes.rows, locations: locRes.rows });
+  } catch (err) { res.status(500).send("Server Error"); }
 });
 
 // New edit route for singular admin/order path
 app.get("/admin/order/edit/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
     try {
         const orderRes = await pool.query(`SELECT o.*, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = $1`, [req.params.id]);
-        if (orderRes.rows.length === 0) return res.json({ success: true });
+        if (orderRes.rows.length === 0) return res.redirect("/admin/orders");
         const itemsRes = await pool.query("SELECT * FROM order_items WHERE order_id = $1", [req.params.id]);
         const locRes = await pool.query("SELECT * FROM locations");
-        res.json({ title: "Edit Order", order: orderRes.rows[0], items: itemsRes.rows, locations: locRes.rows });
-    } catch (err) { res.status(500).json({ error: "Server error" }); }
+        res.render("admin/orders/edit_order", { title: "Edit Order", order: orderRes.rows[0], items: itemsRes.rows, locations: locRes.rows });
+    } catch (err) { res.status(500).send("Server Error"); }
 });
 
 app.put("/admin/order/update/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
     try {
         await pool.query("UPDATE orders SET status=$1, payment_method=$2, pickup_location=$3, table_number=$4 WHERE id=$5", [req.body.status, req.body.payment_method, req.body.pickup_location, req.body.table_number, req.params.id]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: "Server error" }); }
+        res.redirect("/admin/orders");
+    } catch (err) { res.status(500).send("Error"); }
 });
 
 app.delete("/admin/orders/items/delete/:itemId", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
@@ -170,51 +170,51 @@ app.delete("/admin/orders/items/delete/:itemId", checkAuthenticated, checkRole([
   try {
     await client.query("BEGIN");
     const itemRes = await client.query("SELECT order_id, price, quantity FROM order_items WHERE id = $1", [req.params.itemId]);
-    if (itemRes.rows.length === 0) { await client.query("ROLLBACK"); return res.json({ success: true }); }
+    if (itemRes.rows.length === 0) { await client.query("ROLLBACK"); return res.redirect("back"); }
     const { order_id, price, quantity } = itemRes.rows[0];
     await client.query("DELETE FROM order_items WHERE id = $1", [req.params.itemId]);
     await client.query("UPDATE orders SET total_price = total_price - $1 WHERE id = $2", [price * quantity, order_id]);
     await client.query("COMMIT");
-    res.json({ success: true });
-  } catch (err) { await client.query("ROLLBACK"); res.status(500).json({ error: "Server error" }); } finally { client.release(); }
+    res.redirect(`/admin/orders/edit/${order_id}`);
+  } catch (err) { await client.query("ROLLBACK"); res.status(500).send("Error"); } finally { client.release(); }
 });
 
 app.patch("/admin/orders/items/update/:itemId", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
   const client = await pool.connect();
   try {
     const newQuantity = parseInt(req.body.quantity);
-    if (newQuantity < 1) return res.json({ success: false, action: "redirect" });
+    if (newQuantity < 1) return res.redirect(307, `/admin/orders/items/delete/${req.params.itemId}`);
     await client.query("BEGIN");
     const itemRes = await client.query("SELECT order_id, price, quantity FROM order_items WHERE id = $1", [req.params.itemId]);
-    if (itemRes.rows.length === 0) { await client.query("ROLLBACK"); return res.json({ success: true }); }
+    if (itemRes.rows.length === 0) { await client.query("ROLLBACK"); return res.redirect("back"); }
     const { order_id, price, quantity: oldQuantity } = itemRes.rows[0];
     await client.query("UPDATE order_items SET quantity = $1 WHERE id = $2", [newQuantity, req.params.itemId]);
     await client.query("UPDATE orders SET total_price = total_price + $1 WHERE id = $2", [(newQuantity - oldQuantity) * price, order_id]);
     await client.query("COMMIT");
-    res.json({ success: true });
-  } catch (err) { await client.query("ROLLBACK"); res.status(500).json({ error: "Server error" }); } finally { client.release(); }
+    res.redirect(`/admin/orders/edit/${order_id}`);
+  } catch (err) { await client.query("ROLLBACK"); res.status(500).send("Error"); } finally { client.release(); }
 });
 
 app.put("/admin/orders/update/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
   try {
     await pool.query("UPDATE orders SET status=$1, payment_method=$2, pickup_location=$3, table_number=$4 WHERE id=$5", [req.body.status, req.body.payment_method, req.body.pickup_location, req.body.table_number, req.params.id]);
-    res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.redirect("/admin/orders");
+  } catch (err) { res.status(500).send("Error"); }
 });
 
 // Admin Stock & Inventory Routes
 app.get("/admin/stock/menu", checkAuthenticated, checkRole(["manager", "admin"]), async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM stocks ORDER BY category, name ASC");
-    res.json({ title: "Master Ingredient Menu", stocks: result.rows });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.render("admin/stock/stock_menu.ejs", { title: "Master Ingredient Menu", stocks: result.rows });
+  } catch (err) { res.status(500).send("Server Error"); }
 });
 
 app.post("/admin/stock/menu/add", checkAuthenticated, checkRole(["manager", "admin"]), upload.single("image"), async (req, res) => {
   try {
     await pool.query("INSERT INTO stocks (name, category, unit, image_url, quantity) VALUES ($1, $2, $3, $4, 0)", [req.body.name, req.body.category, req.body.unit, req.file ? req.file.path : ""]);
-    res.json({ success: true });
-  } catch (err) { res.status(400).json({ error: "Action failed" }); }
+    res.redirect("/admin/stock/menu");
+  } catch (err) { res.send(`<script>alert('Error adding item'); window.location.href='/admin/stock/menu';</script>`); }
 });
 
 app.patch("/api/stock/menu/:id", checkAuthenticated, checkRole(["manager", "admin"]), async (req, res) => {
@@ -239,11 +239,11 @@ app.post("/admin/stock/:id/status", checkAuthenticated, checkRole(["admin", "man
 app.get("/admin/stock/request/:id", checkAuthenticated, async (req, res) => {
   try {
     const requestResult = await pool.query(`SELECT * FROM stock_requests WHERE id = $1`, [req.params.id]);
-    if (requestResult.rows.length === 0) return res.status(500).json({ error: "Server error" });
+    if (requestResult.rows.length === 0) return res.status(404).send("Request not found");
     const itemsResult = await pool.query(`SELECT * FROM stock_request_items WHERE request_id = $1`, [req.params.id]);
     const locationsResult = await pool.query("SELECT * FROM locations");
-    res.json({ title: "View Stock Request", user: req.user, request: requestResult.rows[0], items: itemsResult.rows, locations: locationsResult.rows, query: {} });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.render("admin/stock/view_stock", { title: "View Stock Request", user: req.user, request: requestResult.rows[0], items: itemsResult.rows, locations: locationsResult.rows, query: {} });
+  } catch (err) { res.status(500).send("Server Error"); }
 });
 
 app.get("/admin/stock", checkAuthenticated, checkRole(["manager", "admin", "store_manager"]), async (req, res) => {
@@ -258,8 +258,8 @@ app.get("/admin/stock", checkAuthenticated, checkRole(["manager", "admin", "stor
     const result = await pool.query(query, params);
     const locResult = await pool.query("SELECT * FROM locations");
     const stockResult = await pool.query("SELECT * FROM stocks ORDER BY category, name ASC");
-    res.json({ title: "Stock Requests", requests: result.rows, locations: locResult.rows, stocks: stockResult.rows });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.render("admin/stock/stock_orders.ejs", { title: "Stock Requests", requests: result.rows, locations: locResult.rows, stocks: stockResult.rows });
+  } catch (err) { res.status(500).send("Server Error"); }
 });
 
 app.get("/admin/stock/create", checkAuthenticated, checkRole(["manager", "admin", "store_manager"]), async (req, res) => {
@@ -269,15 +269,15 @@ app.get("/admin/stock/create", checkAuthenticated, checkRole(["manager", "admin"
     const catRes = await pool.query("SELECT * FROM categories ORDER BY id ASC");
     let stocks = [];
     try { const stockRes = await pool.query("SELECT * FROM stocks ORDER BY category, name"); stocks = stockRes.rows; } catch (e) {}
-    res.json({ title: "Stock Management", locations: locRes.rows, products: prodRes.rows, categories: catRes.rows, stocks: stocks });
-  } catch (err) { res.json({ success: true }); }
+    res.render("admin/stock/create_stock.ejs", { title: "Stock Management", locations: locRes.rows, products: prodRes.rows, categories: catRes.rows, stocks: stocks });
+  } catch (err) { res.redirect("/admin/stock"); }
 });
 
 app.post("/admin/stock/add", checkAuthenticated, checkRole(["manager", "admin", "store_manager"]), upload.single("image"), async (req, res) => {
   try {
     await pool.query("INSERT INTO stocks (name, category, quantity, unit, image_url) VALUES ($1, $2, $3, $4, $5)", [req.body.name, req.body.category, req.body.quantity || 0, req.body.unit, req.file ? req.file.path : ""]);
-    res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.redirect("/admin/stock/create");
+  } catch (err) { res.status(500).send("Error adding stock item."); }
 });
 
 app.patch("/api/stock/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager"]), async (req, res) => {
@@ -319,27 +319,27 @@ app.post("/api/stock/update-status/:id", checkAuthenticated, async (req, res) =>
   } catch (err) { res.status(500).json({ error: "Server Error" }); }
 });
 
-app.get("/add-item", checkAuthenticated, checkRole(["manager", "admin"]), (req, res) => { res.json({ title: "Add Item" }); });
+app.get("/add-item", checkAuthenticated, checkRole(["manager", "admin"]), (req, res) => { res.render("admin/inventory.ejs", { title: "Add Item" }); });
 
 app.get("/admin/inventory", checkAuthenticated, checkRole(["manager", "admin"]), async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM products ORDER BY id ASC");
     const categoryResult = await pool.query("SELECT * FROM categories ORDER BY id ASC");
-    res.json({ title: "Inventory Management", products: result.rows, categories: [{ name: "On Sale" }, ...categoryResult.rows] });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.render("admin/inventory.ejs", { title: "Inventory Management", products: result.rows, categories: [{ name: "On Sale" }, ...categoryResult.rows] });
+  } catch (err) { res.status(500).send("Database Error"); }
 });
 
 app.post("/admin/inventory/add", checkAuthenticated, checkRole(["manager", "admin"]), upload.single("image"), async (req, res) => {
   try {
     const nameCheck = await pool.query("SELECT * FROM products WHERE name = $1", [req.body.name]);
-    if (nameCheck.rows.length > 0) return res.status(400).json({ error: "Action failed" });
+    if (nameCheck.rows.length > 0) return res.send(`<script>alert('Error: Name exists.'); window.location.href='/admin/inventory';</script>`);
     
     const catCheck = await pool.query("SELECT * FROM categories WHERE name = $1", [req.body.category]);
     if (catCheck.rows.length === 0) await pool.query("INSERT INTO categories (name) VALUES ($1)", [req.body.category]);
 
     await pool.query("INSERT INTO products (name, category, price, image_url, is_best_seller, discount_type, discount_value) VALUES ($1, $2, $3, $4, $5, $6, $7)", [req.body.name, req.body.category, req.body.price, req.file ? req.file.path : "https://via.placeholder.com/150", req.body.is_best_seller === "true", req.body.discount_type || "none", req.body.discount_value || 0]);
-    res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.redirect("/admin/inventory");
+  } catch (err) { res.status(500).send("Error adding item"); }
 });
 
 // Delete inventory item
@@ -369,15 +369,15 @@ app.patch("/api/inventory/:id", checkAuthenticated, checkRole(["manager","admin"
 app.get("/admin/locations", checkAuthenticated, checkRole(["manager", "admin"]), async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM locations ORDER BY id ASC");
-    res.json({ title: "Location Management", locations: result.rows });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.render("admin/locations.ejs", { title: "Location Management", locations: result.rows });
+  } catch (err) { res.status(500).send("Server Error"); }
 });
 
 app.post("/api/locations", checkAuthenticated, checkRole(["manager", "admin"]), async (req, res) => {
   try {
     await pool.query("INSERT INTO locations (name, address, google_map_url, status, hours_mon_fri, hours_sat_sun) VALUES ($1, $2, $3, $4, $5, $6)", [req.body.name, req.body.address, req.body.google_map_url, req.body.status, req.body.hours_mon_fri, req.body.hours_sat_sun]);
-    res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.redirect("/admin/locations");
+  } catch (err) { res.status(500).send("Error adding location"); }
 });
 
 app.patch("/api/locations/:id", checkAuthenticated, checkRole(["manager", "admin"]), async (req, res) => {
@@ -396,16 +396,16 @@ app.get("/admin/users", checkAuthenticated, checkRole(["admin"]), async (req, re
   try {
     const result = await pool.query("SELECT * FROM users ORDER BY id ASC");
     const locResult = await pool.query("SELECT * FROM locations ORDER BY name ASC");
-    res.json({ title: "User Management", usersList: result.rows, locations: locResult.rows });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.render("admin/users/users.ejs", { title: "User Management", usersList: result.rows, locations: locResult.rows });
+  } catch (err) { res.status(500).send("Error fetching users"); }
 });
 
 app.delete("/admin/users/delete/:id", checkAuthenticated, checkRole(["admin"]), async (req, res) => {
   try {
-    if (parseInt(req.params.id) === req.user.id) return res.json({ success: true });
+    if (parseInt(req.params.id) === req.user.id) return res.redirect("/admin/users");
     await pool.query("DELETE FROM users WHERE id = $1", [req.params.id]);
-    res.json({ success: true });
-  } catch (err) { res.json({ success: true }); }
+    res.redirect("/admin/users");
+  } catch (err) { res.redirect("/admin/users"); }
 });
 
 app.get("/admin/users/edit/:id", checkAuthenticated, checkRole(["admin"]), async (req, res) => {
@@ -413,9 +413,9 @@ app.get("/admin/users/edit/:id", checkAuthenticated, checkRole(["admin"]), async
     const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [req.params.id]);
     if (userResult.rows.length > 0) {
       const locResult = await pool.query("SELECT * FROM locations");
-      res.json({ title: "Edit User", targetUser: userResult.rows[0], locations: locResult.rows });
-    } else res.json({ success: true });
-  } catch (err) { res.json({ success: true }); }
+      res.render("admin/users/edit_user.ejs", { title: "Edit User", targetUser: userResult.rows[0], locations: locResult.rows });
+    } else res.redirect("/admin/users");
+  } catch (err) { res.redirect("/admin/users"); }
 });
 
 app.put("/admin/users/update/:id", checkAuthenticated, checkRole(["admin"]), async (req, res) => {
@@ -427,28 +427,28 @@ app.put("/admin/users/update/:id", checkAuthenticated, checkRole(["admin"]), asy
     } else {
       await pool.query("UPDATE users SET email = $1, role = $2, assigned_location_id = $3 WHERE id = $4", [req.body.email, req.body.role, finalLocation, req.params.id]);
     }
-    res.json({ success: true });
-  } catch (err) { res.json({ success: true }); }
+    res.redirect("/admin/users");
+  } catch (err) { res.redirect("/admin/users"); }
 });
 
 app.post("/admin/create-manager", checkAuthenticated, checkRole(["admin", "manager"]), async (req, res) => {
   try {
     const checkResult = await pool.query("SELECT * FROM users WHERE email = $1", [req.body.email]);
-    if (checkResult.rows.length > 0) return res.status(400).json({ error: "Action failed" });
-    if (["store_manager", "staff", "cashier"].includes(req.body.role) && !req.body.assigned_location_id) return res.status(400).json({ error: "Action failed" });
+    if (checkResult.rows.length > 0) return res.send(`<script>alert('Email already exists'); window.location.href='/admin/users';</script>`);
+    if (["store_manager", "staff", "cashier"].includes(req.body.role) && !req.body.assigned_location_id) return res.send(`<script>alert('Error: Must have assigned location.'); window.location.href='/admin/users';</script>`);
     const finalLocation = ["store_manager", "staff", "cashier"].includes(req.body.role) ? req.body.assigned_location_id : null;
     bcrypt.hash(req.body.password, saltRounds, async (err, hash) => {
       await pool.query("INSERT INTO users (email, password, role, assigned_location_id) VALUES ($1, $2, $3, $4)", [req.body.email, hash, req.body.role, finalLocation]);
-      res.json({ success: true });
+      res.redirect("/admin/users");
     });
-  } catch (err) { res.json({ success: true }); }
+  } catch (err) { res.redirect("/admin/users"); }
 });
 
 app.get("/admin/category", checkAuthenticated, checkRole(["manager", "admin"]), async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM categories ORDER BY id ASC");
-    res.json({ title: "Category Management", layout: "layout", categories: result.rows, userRole: req.user.role });
-  } catch (err) { res.status(500).json({ error: "Server error" }); }
+    res.render("admin/category.ejs", { title: "Category Management", layout: "layout", categories: result.rows, userRole: req.user.role });
+  } catch (err) { res.status(500).send("Server Error"); }
 });
 
 app.post("/api/category", checkAuthenticated, checkRole(["manager", "admin"]), async (req, res) => {
