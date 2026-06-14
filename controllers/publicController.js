@@ -300,6 +300,13 @@ router.get("/staff/menu", checkAuthenticated, checkRole(["manager", "admin", "st
 
 // Orders List Page
 router.get("/orders", checkAuthenticated, async (req, res) => {
+  if (typeof req.user.id === "string" && req.user.id.startsWith("env-")) {
+    return res.render("orders", {
+      title: "My Orders - Murakami Sushi",
+      orders: [],
+      layout: "layouts",
+    });
+  }
   try {
     const result = await pool.query(
       "SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC",
