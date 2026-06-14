@@ -60,7 +60,7 @@
                                             <div class="w-24 sm:w-full h-full sm:h-36 relative flex-shrink-0">
                                                 <img src="<%= product.image_url || 'https://via.placeholder.com/150' %>"
                                                     class="w-full h-full object-cover" loading="lazy" />
-                                                <button onclick="addToCart(<%= product.id %>)"
+                                                <button onclick="addToCart('<%= product.id %>')"
                                                     class="hidden sm:flex absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 items-center justify-center text-white transition-all cursor-pointer">
                                                     <i class="fa-solid fa-plus text-3xl"></i>
                                                 </button>
@@ -79,12 +79,12 @@
                                                 </div>
 
                                                 <div class="flex justify-end sm:justify-between items-center sm:mt-2">
-                                                    <button onclick="addToCart(<%= product.id %>)"
+                                                    <button onclick="addToCart('<%= product.id %>')"
                                                         class="hidden sm:block text-xs bg-orange-50 dark:bg-gray-700 text-orange-600 dark:text-orange-400 px-3 py-1 rounded hover:bg-orange-100 dark:hover:bg-gray-600 font-bold transition-colors">
                                                         Add
                                                     </button>
 
-                                                    <button onclick="addToCart(<%= product.id %>)"
+                                                    <button onclick="addToCart('<%= product.id %>')"
                                                         class="sm:hidden w-8 h-8 bg-orange-100 dark:bg-gray-700 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center active:bg-orange-500 active:text-white transition-colors">
                                                         <i class="fa-solid fa-plus"></i>
                                                     </button>
