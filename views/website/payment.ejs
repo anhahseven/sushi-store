@@ -15,35 +15,45 @@
             <p class="text-4xl font-extrabold text-indigo-600 tracking-tight"><%= amount %> $</p>
         </div>
 
-        <form action="<%= abaUrl %>" method="POST" id="aba_form">
-            
-            <input type="hidden" name="hash" value="<%= abaPayload.hash %>">
-            <input type="hidden" name="tran_id" value="<%= orderId %>">
-            <input type="hidden" name="amount" value="<%= amount %>">
-            <input type="hidden" name="req_time" value="<%= abaPayload.reqTime %>">
-            <input type="hidden" name="merchant_id" value="<%= abaPayload.merchantId %>">
-            <input type="hidden" name="firstname" value="<%= abaPayload.cfirstname %>">
-            <input type="hidden" name="lastname" value="<%= abaPayload.clastname %>">
-<input type="hidden" name="items" value="<%= abaPayload.items %>">
-<input type="hidden" name="shipping" value="<%= abaPayload.shipping %>">
-            <input type="hidden" name="email" value="<%= abaPayload.cemail %>">
-            <input type="hidden" name="phone" value="<%= abaPayload.cphone %>">
-            <input type="hidden" name="type" value="<%= abaPayload.type %>">
-<input type="hidden" name="payment_option" value="<%= abaPayload.payment_option %>">
-            <input type="hidden" name="return_url" value="<%= abaPayload.return_url %>">
-<input type="hidden" name="cancel_url" value="<%= abaPayload.cancel_url %>">
-<input type="hidden" name="continue_success_url" value="<%= abaPayload.continue_success_url %>">
-<input type="hidden" name="return_deeplink" value="<%= abaPayload.return_deeplink %>">
-<input type="hidden" name="currency" value="<%= abaPayload.currency %>">
-<input type="hidden" name="custom_fields" value="<%= abaPayload.custom_fields %>">
-<input type="hidden" name="return_params" value="<%= abaPayload.return_params %>">
-<input type="hidden" name="payout" value="<%= abaPayload.payout %>">
-<input type="hidden" name="lifetime" value="<%= abaPayload.lifetime %>">
-<input type="hidden" name="additional_params" value="<%= abaPayload.additional_params %>">
-<input type="hidden" name="google_pay_token" value="<%= abaPayload.google_pay_token %>">
-<input type="hidden" name="skip_success_page" value="<%= abaPayload.skip_success_page %>">
-            <button type="submit" class="group w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-indigo-200 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3">
-                <i class="fa-solid fa-qrcode group-hover:rotate-12 transition-transform"></i>
-                <span>Pay with ABA PayWay</span>
-            </button>
-        </form>
+        <button onclick="confirmDemoPayment(<%= orderId %>)" id="pay_btn" class="group w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-indigo-200 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3">
+            <i class="fa-solid fa-credit-card group-hover:rotate-12 transition-transform"></i>
+            <span>Confirm & Pay Now (Demo Mode)</span>
+        </button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    async function confirmDemoPayment(orderId) {
+        const btn = document.getElementById('pay_btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Processing Payment...';
+        try {
+            const res = await fetch(`/payment/confirm/${orderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Payment Successful',
+                    text: 'Your order has been paid successfully!',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = '/orders';
+                });
+            } else {
+                alert(data.error || 'Payment failed');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-credit-card"></i> <span>Confirm & Pay Now (Demo Mode)</span>';
+            }
+        } catch(e) {
+            console.error(e);
+            alert('Connection error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-credit-card"></i> <span>Confirm & Pay Now (Demo Mode)</span>';
+        }
+    }
+</script>

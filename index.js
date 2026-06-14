@@ -85,28 +85,13 @@ app.post(
 // PAYMENT ROUTES (DEMO MODE)
 app.get("/payment/:id", checkAuthenticated, renderPaymentPage);
 
-// Added direct route (no router) for confirming payment with ABA integration
+// Added direct route (no router) for confirming payment (Demo Mode)
 app.post("/payment/confirm/:id", checkAuthenticated, async (req, res) => {
   try {
     const orderId = req.params.id;
     const pool = req.pool;
-    // Mark order as processing
-    await pool.query("UPDATE orders SET status = 'Processing' WHERE id = $1", [orderId]);
-
-    // Create ABA payment
-    try {
-      const amountRes = await pool.query("SELECT total_price FROM orders WHERE id = $1", [orderId]);
-      const amount = parseFloat(amountRes.rows[0].total_price).toFixed(2);
-      const { createAbaPayment } = await import("./services/abaPayment.js");
-      const abaResponse = await createAbaPayment(orderId, amount);
-      console.log('ABA payment created:', abaResponse);
-      const tranId = abaResponse.tran_id || abaResponse.pw_tran_id;
-      if (tranId) {
-        await pool.query("UPDATE orders SET aba_tran_id = $1 WHERE id = $2", [tranId, orderId]);
-      }
-    } catch (payErr) {
-      console.error('ABA payment error:', payErr);
-    }
+    // Mark order as processing and payment method as QR
+    await pool.query("UPDATE orders SET status = 'Processing', payment_method = 'QR' WHERE id = $1", [orderId]);
     res.json({ success: true, message: "Payment confirmed" });
   } catch (err) {
     console.error(err);

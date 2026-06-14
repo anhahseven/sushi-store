@@ -298,4 +298,50 @@ router.get("/staff/menu", checkAuthenticated, checkRole(["manager", "admin", "st
   }
 });
 
+// Orders List Page
+router.get("/orders", checkAuthenticated, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC",
+      [req.user.id]
+    );
+    res.render("orders", {
+      title: "My Orders - Murakami Sushi",
+      orders: result.rows,
+      layout: "layouts", // Use layouts.ejs layout for the website navbar
+    });
+  } catch (err) {
+    console.error("Error loading orders page:", err);
+    res.status(500).send("Error loading orders");
+  }
+});
+
+// Cancel Order Request (Form POST)
+router.post("/orders/request-cancel/:id", checkAuthenticated, async (req, res) => {
+  try {
+    await pool.query(
+      "UPDATE orders SET status = 'Cancel Requested' WHERE id = $1 AND user_id = $2 AND status = 'Pending'",
+      [req.params.id, req.user.id]
+    );
+    res.redirect("/orders");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error requesting cancellation");
+  }
+});
+
+// Refund Order Request (Form POST)
+router.post("/orders/request-refund/:id", checkAuthenticated, async (req, res) => {
+  try {
+    await pool.query(
+      "UPDATE orders SET status = 'Refund Requested' WHERE id = $1 AND user_id = $2 AND status = 'Completed'",
+      [req.params.id, req.user.id]
+    );
+    res.redirect("/orders");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error requesting refund");
+  }
+});
+
 export default router;
