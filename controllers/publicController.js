@@ -170,12 +170,14 @@ router.get("/", async (req, res) => {
     res.render("website/main/index", {
       title: "Murakami Sushi",
       products: result.rows,
+      layout: "layouts",
     });
   } catch (err) {
     console.error("Error loading home page:", err);
     res.render("website/main/index", {
       title: "Murakami Sushi",
       products: [],
+      layout: "layouts",
     });
   }
 });
@@ -189,6 +191,7 @@ router.get("/menu", async (req, res) => {
       title: "Our Menu - Murakami Sushi",
       products: productsRes.rows,
       categories: categoriesRes.rows,
+      layout: "layouts",
     });
   } catch (err) {
     console.error("Error loading menu:", err);
@@ -198,7 +201,7 @@ router.get("/menu", async (req, res) => {
 
 // About Page
 router.get("/about", (req, res) => {
-  res.render("website/about", { title: "About Us - Murakami Sushi" });
+  res.render("website/about", { title: "About Us - Murakami Sushi", layout: "layouts" });
 });
 
 // Locations Page
@@ -208,6 +211,7 @@ router.get("/location", async (req, res) => {
     res.render("website/location", {
       title: "Our Locations - Murakami Sushi",
       locations: result.rows,
+      layout: "layouts",
     });
   } catch (err) {
     console.error("Error loading locations:", err);
@@ -225,6 +229,7 @@ router.get("/offers", async (req, res) => {
     res.render("website/offers", {
       title: "Special Offers - Murakami Sushi",
       products: discountedProducts,
+      layout: "layouts",
     });
   } catch (err) {
     console.error("Error loading offers:", err);
@@ -248,6 +253,7 @@ router.get("/checkout", checkAuthenticated, async (req, res) => {
       title: "Checkout - Murakami Sushi",
       cart: cartRes.rows,
       locations: locRes.rows,
+      layout: "layouts",
     });
   } catch (err) {
     console.error("Error loading checkout page:", err);
@@ -257,7 +263,7 @@ router.get("/checkout", checkAuthenticated, async (req, res) => {
 
 // Profile Page
 router.get("/profile", checkAuthenticated, (req, res) => {
-  res.render("website/profile", { title: "My Profile - Murakami Sushi" });
+  res.render("website/profile", { title: "My Profile - Murakami Sushi", layout: "layouts" });
 });
 
 // Login / Register Page (website/auth)
