@@ -1,252 +1,419 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion, useScroll, useTransform, useSpring, useInView, useMotionValue } from "framer-motion";
 import axios from "axios";
-import HorizonHeroSection from "../components/ui/horizon-hero-section";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useCart } from "../context/CartContext";
+import Swal from "sweetalert2";
 
-const spring = { stiffness: 80, damping: 20, mass: 1.2 };
-const easeOut = [0.16, 1, 0.3, 1];
+gsap.registerPlugin(ScrollTrigger);
 
-/* ─── 3D Flip Card ─── */
-function FlipCard({ icon, title, desc, color }: { icon: string; title: string; desc: string; color: string }) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const rotateY = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [-90, -10, 10, 0]);
-  const translateZ = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [-120, -20, 30, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [0.7, 0.9, 1.02, 1]);
-  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.5, 1], [0, 0.5, 1, 1]);
-
-  const colorMap: Record<string, { bg: string; text: string }> = {
-    orange: { bg: "bg-orange-500/15", text: "text-orange-400" },
-    blue: { bg: "bg-blue-500/15", text: "text-blue-400" },
-    emerald: { bg: "bg-emerald-500/15", text: "text-emerald-400" },
-    purple: { bg: "bg-purple-500/15", text: "text-purple-400" },
-    red: { bg: "bg-red-500/15", text: "text-red-400" },
-    amber: { bg: "bg-amber-500/15", text: "text-amber-400" },
-    cyan: { bg: "bg-cyan-500/15", text: "text-cyan-400" },
-  };
-  const c = colorMap[color] || colorMap.orange;
-
-  return (
-    <motion.div ref={ref} className="relative" style={{ perspective: 1200, opacity }}>
-      <motion.div
-        className="relative p-7 rounded-3xl bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/15 overflow-hidden card-3d"
-        style={{
-          rotateY: useSpring(rotateY, spring),
-          translateZ: useSpring(translateZ, spring),
-          scale: useSpring(scale, spring),
-          transformStyle: "preserve-3d",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-        }}
-      >
-        <div className="absolute inset-0 animate-shimmer-3d pointer-events-none rounded-3xl" />
-        <div className={`w-14 h-14 rounded-2xl ${c.bg} flex items-center justify-center mb-5`}>
-          <i className={`fa-solid ${icon} text-xl ${c.text}`} />
-        </div>
-        <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-        <p className="text-white/50 text-sm leading-relaxed">{desc}</p>
-      </motion.div>
-    </motion.div>
-  );
+interface Product {
+  id: number;
+  name: string;
+  category: string;
+  price: string | number;
+  image_url: string;
+  is_best_seller: boolean;
 }
 
-/* ─── Product Card ─── */
-function ProductCard({ product, idx }: { product: any; idx: number }) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [80, -80]);
-  const rotateY = useTransform(scrollYProgress, [0, 0.5, 1], [idx % 2 === 0 ? -8 : 8, 0, idx % 2 === 0 ? 8 : -8]);
-  const scale = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [0.85, 0.95, 1.02, 1]);
+const myCategories = [
+  { 
+      name: 'Roll', 
+      icon: '<i class="fa-solid fa-scroll"></i>', 
+      desc: 'Fresh Atlantic salmon, tuna, and yellowtail rolls prepared daily.', 
+      img: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?q=80&w=600&auto=format&fit=crop' 
+  },
+  { 
+      name: 'Set', 
+      icon: '<i class="fa-solid fa-box"></i>', 
+      desc: 'Curated combinations perfect for lunch boxes or sharing.', 
+      img: 'https://images.unsplash.com/photo-1611143669185-af224c5e3252?q=80&w=600&auto=format&fit=crop' 
+  },
+  { 
+      name: 'Hot Roll', 
+      icon: '<i class="fa-solid fa-fire"></i>', 
+      desc: 'Baked to perfection with spicy mayo and eel sauce.', 
+      img: 'https://images.unsplash.com/photo-1633478062482-790e3b5dd810?q=80&w=600&auto=format&fit=crop' 
+  },
+  { 
+      name: 'Maki', 
+      icon: '<i class="fa-solid fa-circle-dot"></i>', 
+      desc: 'Classic hosomaki rolls wrapped in crisp nori.', 
+      img: 'https://images.unsplash.com/photo-1553621042-f6e147245754?q=80&w=600&auto=format&fit=crop' 
+  },
+  { 
+      name: 'Ramen', 
+      icon: '<i class="fa-solid fa-bowl-food"></i>', 
+      desc: 'Rich, creamy tonkotsu broth with handmade noodles.', 
+      img: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?q=80&w=600&auto=format&fit=crop' 
+  },
+  { 
+      name: 'Poke', 
+      icon: '<i class="fa-solid fa-fish"></i>', 
+      desc: 'Healthy Hawaiian-style bowls with marinated fish.', 
+      img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600&auto=format&fit=crop' 
+  }
+];
 
-  return (
-    <motion.div
-      ref={ref}
-      className="group relative rounded-3xl overflow-hidden bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/15 card-3d"
-      style={{
-        y: useSpring(y, spring),
-        rotateY: useSpring(rotateY, { stiffness: 60, damping: 25 }),
-        scale: useSpring(scale, spring),
-        transformStyle: "preserve-3d",
-      }}
-    >
-      <div className="relative h-52 overflow-hidden bg-black/30">
-        {product.image_url ? (
-          <motion.img src={product.image_url} alt={product.name} className="w-full h-full object-cover"
-            style={{ scale: useTransform(scrollYProgress, [0, 1], [1.1, 0.95]) }} />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-5xl">🍣</div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-      </div>
-      <div className="p-5">
-        <h3 className="font-bold text-white mb-1">{product.name}</h3>
-        <p className="text-white/40 text-xs mb-3 line-clamp-2">{product.description}</p>
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-orange-400">${Number(product.price).toFixed(2)}</span>
-          <Link to="/menu" className="px-4 py-1.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-colors">Order</Link>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-export default function Home() {
-  const [featured, setFeatured] = useState<any[]>([]);
-  const [toast, setToast] = useState("");
-  const ctaRef = useRef(null);
-
-  const { scrollYProgress: ctaScroll } = useScroll({ target: ctaRef, offset: ["start end", "center center"] });
-  const ctaRotateX = useTransform(ctaScroll, [0, 0.5, 1], [-60, -5, 0]);
-  const ctaZ = useTransform(ctaScroll, [0, 0.5, 1], [-200, -20, 0]);
-  const ctaOpacity = useTransform(ctaScroll, [0, 0.4, 1], [0, 0.5, 1]);
+export function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const { addToCart } = useCart();
 
   useEffect(() => {
-    const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    axios.get(`${apiBaseUrl}/api/products?limit=6`)
+    const apiBaseUrl = import.meta.env.VITE_API_URL || "";
+    axios.get(`${apiBaseUrl}/api/products`)
       .then(res => {
-        const products = res.data.products || res.data || [];
-        setFeatured(Array.isArray(products) ? products : []);
-      }).catch(console.error);
+        const rawProducts = res.data.products || res.data || [];
+        setProducts(Array.isArray(rawProducts) ? rawProducts : []);
+      })
+      .catch(console.error);
   }, []);
 
-  const sectionHeading = (badge: string, badgeIcon: string, title: string, highlight: string, desc: string) => (
-    <motion.div
-      className="text-center mb-20"
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.8, ease: easeOut }}
-    >
-      <span className="inline-flex items-center gap-2 bg-white/10 border border-white/15 text-orange-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-4 backdrop-blur-md">
-        <i className={`fa-solid ${badgeIcon}`} /> {badge}
-      </span>
-      <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
-        {title} <span className="text-orange-400">{highlight}</span>
-      </h2>
-      <p className="text-white/40 max-w-xl mx-auto">{desc}</p>
-    </motion.div>
-  );
+  // 1. GSAP Scroll Animation
+  useEffect(() => {
+    let ctx = gsap.context(() => {
+      let mm = gsap.matchMedia();
+
+      mm.add("(min-width: 1024px)", () => {
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: "#feature-scroll-section",
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 1,
+            snap: {
+              snapTo: 1 / 4,
+              duration: { min: 0.3, max: 0.6 },
+              delay: 0,
+              ease: "power1.inOut",
+            },
+          },
+        });
+
+        const cards = document.querySelectorAll(".feature-card");
+
+        if (cards.length > 0) {
+          tl.to(cards[1], { y: 0, duration: 1, ease: "none" })
+            .to(cards[2], { y: 0, duration: 1, ease: "none" })
+            .to(cards[3], { y: 0, duration: 1, ease: "none" });
+
+          tl.add("zoomStart");
+          const gridWidth = 280;
+          const gridHeight = 400;
+          const gap = 24;
+          const commonGridProps = {
+            width: `${gridWidth}px`,
+            height: `${gridHeight}px`,
+            borderRadius: "1rem",
+            top: "50%",
+            y: "-50%",
+            ease: "power2.inOut",
+            duration: 1,
+          };
+
+          tl.to(".feature-card h3", { fontSize: "1.25rem", duration: 1 }, "zoomStart")
+            .to(".icon-container", { width: "3.5rem", height: "3.5rem", marginBottom: "1rem", duration: 1 }, "zoomStart")
+            .to(".icon-container svg", { width: "2rem", height: "2rem", duration: 1 }, "zoomStart");
+
+          tl.to(cards[0], { ...commonGridProps, left: `calc(50% - ${gridWidth * 2 + gap * 1.5}px)` }, "zoomStart")
+            .to(cards[1], { ...commonGridProps, left: `calc(50% - ${gridWidth * 1 + gap * 0.5}px)` }, "zoomStart")
+            .to(cards[2], { ...commonGridProps, left: `calc(50% + ${gap * 0.5}px)` }, "zoomStart")
+            .to(cards[3], { ...commonGridProps, left: `calc(50% + ${gridWidth * 1 + gap * 1.5}px)` }, "zoomStart");
+        }
+      });
+
+      mm.add("(max-width: 1023px)", () => {
+        gsap.set(".feature-card", {
+          position: "relative",
+          transform: "none",
+          height: "400px",
+          width: "100%",
+          marginBottom: "1rem",
+          borderRadius: "1rem",
+        });
+        gsap.set("#feature-scroll-section > div", { height: "auto" });
+        gsap.set("#feature-scroll-section .sticky", {
+          position: "relative",
+          height: "auto",
+          padding: "1rem",
+        });
+      });
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  // 2. Scroll Reveal Intersection Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("reveal-active");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    const elements = document.querySelectorAll(".scroll-hidden");
+    elements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [products]);
+
+  const handleAddToCart = async (productId: number) => {
+    const res = await addToCart(productId);
+    if (res.success) {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "Item added to cart",
+        showConfirmButton: false,
+        timer: 1500
+      });
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: res.error === "unauthorized" ? "Please login to add items to the cart." : res.error
+      });
+    }
+  };
+
+  const bestSellers = products.filter(p => p.is_best_seller === true).slice(0, 4);
 
   return (
-    <div className="bg-black text-white min-h-screen">
-      {/* Our New Video Animation Background Hero Section */}
-      <HorizonHeroSection />
+    <div className="bg-white dark:bg-gray-900 transition-colors duration-300">
+      <style>{`
+        /* Scroll reveal styling exactly matching index.ejs */
+        .scroll-hidden {
+          opacity: 0;
+          transform: translateY(60px);
+          transition: opacity 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            transform 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          will-change: opacity, transform;
+        }
 
-      {/* ═══ FEATURES ═══ */}
-      <section className="relative py-32 px-4">
-        <div className="max-w-7xl mx-auto">
-          {sectionHeading("Why Choose Us", "fa-star", "Crafted with", "Passion", "Every dish tells a story of tradition, quality, and relentless pursuit of perfection.")}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <FlipCard icon="fa-fish" title="Premium Quality" desc="Only the freshest ingredients sourced from trusted suppliers. Our fish and rice are flown in daily from Tokyo markets." color="orange" />
-            <FlipCard icon="fa-stopwatch" title="Lightning Fast" desc="Quick and reliable preparation right to your table. We pride ourselves on immaculate hygiene and speed without sacrifice." color="blue" />
-            <FlipCard icon="fa-map-location-dot" title="Multiple Locations" desc="Visit us at any of our convenient locations across the city. Each kitchen maintains the same 5-star standard." color="emerald" />
-            <FlipCard icon="fa-leaf" title="Farm to Table" desc="We partner directly with local farms and Japanese importers to ensure every ingredient meets our exacting standards." color="emerald" />
-            <FlipCard icon="fa-award" title="Award Winning" desc="Recognized as Cambodia's best Japanese restaurant for three consecutive years by the National Culinary Association." color="amber" />
-            <FlipCard icon="fa-truck-fast" title="Free Delivery" desc="Free delivery within 10km for orders over $20. Real-time tracking so you know exactly when your food arrives." color="purple" />
-            <FlipCard icon="fa-heart" title="Made with Love" desc="Every roll, every bowl, every plate is handcrafted by our chefs who have trained in Tokyo for over a decade." color="red" />
-          </div>
-        </div>
-      </section>
+        .reveal-active {
+          opacity: 1;
+          transform: translateY(0);
+        }
 
-      {/* ═══ HOW IT WORKS ═══ */}
-      <section className="relative py-32 px-4">
-        <div className="max-w-6xl mx-auto">
-          {sectionHeading("Simple Process", "fa-list-check", "How It", "Works", "From our kitchen to your table in four easy steps.")}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { step: "01", icon: "fa-utensils", title: "Choose Your Dish", desc: "Browse our curated menu of authentic Japanese cuisine, from classic sushi to modern fusion.", color: "from-orange-500 to-red-500" },
-              { step: "02", icon: "fa-cart-shopping", title: "Place Your Order", desc: "Order online or visit us. Customize your meal exactly how you like it.", color: "from-blue-500 to-indigo-500" },
-              { step: "03", icon: "fa-fire-burner", title: "We Cook Fresh", desc: "Our master chefs prepare your order with the freshest ingredients, never pre-made.", color: "from-emerald-500 to-teal-500" },
-              { step: "04", icon: "fa-face-smile-beam", title: "Enjoy & Relax", desc: "Pick up in-store or get it delivered hot to your door. Every bite is a journey.", color: "from-purple-500 to-pink-500" },
-            ].map((item, i) => (
-              <motion.div key={item.step} className="relative text-center group" initial={{ opacity: 0, y: 50, rotateX: -15 }} whileInView={{ opacity: 1, y: 0, rotateX: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, delay: i * 0.15, ease: easeOut }} style={{ transformStyle: "preserve-3d" }}>
-                {i < 3 && <div className="hidden lg:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-white/10 to-white/5" />}
-                <div className={`relative w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                  <i className={`fa-solid ${item.icon} text-white text-2xl`} />
-                  <span className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-black/50 text-white text-xs font-black flex items-center justify-center shadow-md border border-white/20">{item.step}</span>
+        @media (max-width: 640px) {
+          .scroll-hidden {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+          }
+        }
+      `}</style>
+
+      {/* ─── 1. VIDEO HERO SECTION (EJS header.ejs) ─── */}
+      <section id="feature-scroll-section" className="relative bg-white dark:bg-gray-900 pt-24 lg:pt-0">
+        <div className="h-[100vh] lg:h-[500vh]">
+          <div className="sticky top-0 h-screen w-full overflow-hidden block">
+            
+            {/* Card 1: Always Fresh */}
+            <div className="feature-card absolute inset-0 w-full h-full z-10 bg-gray-900 overflow-hidden flex items-center justify-center">
+              <video className="absolute inset-0 w-full h-full object-cover opacity-60" autoPlay loop muted playsInline>
+                <source src="/videos/Fresh salmon sushi, close up - Free Stock Video.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+              <div className="relative z-10 flex flex-col items-center justify-center text-white text-center p-4">
+                <div className="icon-container h-32 w-32 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-6">
+                  <svg className="w-16 h-16 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
-                <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ FEATURED PRODUCTS ═══ */}
-      {featured.length > 0 && (
-        <section className="relative py-32 px-4">
-          <div className="max-w-7xl mx-auto">
-            {sectionHeading("Chef's Selection", "fa-fire", "Featured", "Items", "Hand-picked by our head chef — the most loved dishes on our menu.")}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featured.map((product, idx) => (<ProductCard key={product.id} product={product} idx={idx} />))}
-            </div>
-            <motion.div className="text-center mt-16" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.3 }}>
-              <Link to="/menu" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-white/10 border border-white/20 text-white font-bold hover:bg-white/20 transition-all shadow-lg hover:shadow-xl hover:scale-105 backdrop-blur-sm">
-                View Full Menu <i className="fa-solid fa-arrow-right" />
-              </Link>
-            </motion.div>
-          </div>
-        </section>
-      )}
-
-      {/* ═══ TESTIMONIALS ═══ */}
-      <section className="relative py-32 px-4">
-        <div className="max-w-7xl mx-auto">
-          {sectionHeading("Testimonials", "fa-quote-left", "What Our", "Guests Say", "Don't just take our word for it — hear from the people who've experienced our cuisine.")}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { name: "Sarah Mitchell", role: "Food Blogger", avatar: "SM", rating: 5, text: "The most authentic Japanese food I've had outside of Tokyo. The omakase experience is absolutely unforgettable — every piece of sushi melts in your mouth.", color: "from-orange-400 to-pink-500" },
-              { name: "David Chen", role: "Regular Customer", avatar: "DC", rating: 5, text: "I've been coming here for two years and the quality never drops. The staff remembers my name, the ramen is incredible, and the ambiance is perfect for date nights.", color: "from-blue-400 to-indigo-500" },
-              { name: "Yuki Tanaka", role: "Japanese Expat", avatar: "YT", rating: 5, text: "As someone from Japan, I'm picky about sushi. This place genuinely impressed me. The rice seasoning, the fish quality — it's the real deal. My go-to spot in Phnom Penh.", color: "from-emerald-400 to-teal-500" },
-            ].map((review, i) => (
-              <motion.div key={review.name} className="relative p-8 rounded-3xl bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/15 card-3d overflow-hidden" initial={{ opacity: 0, y: 50, rotateY: i === 1 ? 10 : -10 }} whileInView={{ opacity: 1, y: 0, rotateY: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, delay: i * 0.15, ease: easeOut }} style={{ transformStyle: "preserve-3d" }}>
-                <div className="absolute top-4 right-6 text-6xl font-serif text-white/5 leading-none select-none">"</div>
-                <div className="relative z-10">
-                  <div className="flex items-center gap-1 mb-4">{Array.from({ length: review.rating }).map((_, si) => (<i key={si} className="fa-solid fa-star text-amber-400 text-sm" />))}</div>
-                  <p className="text-white/60 text-sm leading-relaxed mb-6">{review.text}</p>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${review.color} flex items-center justify-center text-white font-bold text-sm`}>{review.avatar}</div>
-                    <div><div className="font-bold text-white text-sm">{review.name}</div><div className="text-white/30 text-xs">{review.role}</div></div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ CTA BANNER ═══ */}
-      <section ref={ctaRef} className="relative py-32 overflow-hidden" style={{ perspective: "1200px" }}>
-        <motion.div
-          className="relative max-w-5xl mx-auto px-6"
-          style={{
-            rotateX: useSpring(ctaRotateX, { stiffness: 60, damping: 20 }),
-            translateZ: useSpring(ctaZ, { stiffness: 60, damping: 20 }),
-            opacity: ctaOpacity,
-            transformStyle: "preserve-3d",
-          }}
-        >
-          <div className="relative rounded-[3rem] overflow-hidden bg-gradient-to-br from-orange-500 via-red-500 to-purple-600 p-12 md:p-20 text-center shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-600/50 via-transparent to-purple-600/50 animate-shimmer-3d" />
-            <motion.div className="absolute top-6 left-6 w-20 h-20 bg-white/10 rounded-2xl backdrop-blur-sm" animate={{ rotateZ: [0, 90, 180, 270, 360], scale: [1, 1.1, 1, 0.9, 1] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} />
-            <motion.div className="absolute bottom-6 right-6 w-16 h-16 bg-white/10 rounded-full backdrop-blur-sm" animate={{ rotateZ: [360, 270, 180, 90, 0], scale: [1, 0.9, 1, 1.1, 1] }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }} />
-            <div className="relative z-10">
-              <h2 className="text-4xl md:text-6xl font-black text-white mb-6">Ready to Taste<br /><span className="text-yellow-200">the Difference?</span></h2>
-              <p className="text-white/80 text-lg mb-10 max-w-xl mx-auto">Join thousands of satisfied customers who have made us their go-to destination for authentic Japanese cuisine.</p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/menu" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white text-orange-600 font-bold text-lg hover:bg-yellow-100 transition-all shadow-xl hover:scale-105"><i className="fa-solid fa-utensils" /> Order Now</Link>
-                <Link to="/location" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full border-2 border-white/30 text-white font-bold text-lg hover:bg-white/10 transition-all"><i className="fa-solid fa-map-pin" /> Find Us</Link>
+                <h3 className="text-6xl font-bold uppercase tracking-wide drop-shadow-lg">Always Fresh</h3>
               </div>
             </div>
+
+            {/* Card 2: Fast Delivery */}
+            <div className="feature-card absolute inset-0 w-full h-full z-20 bg-gray-900 overflow-hidden flex items-center justify-center translate-y-full">
+              <video className="absolute inset-0 w-full h-full object-cover opacity-60" autoPlay loop muted playsInline>
+                <source src="/videos/4605490-uhd_2160_4096_25fps.mp4" type="video/mp4" />
+              </video>
+              <div className="relative z-10 flex flex-col items-center justify-center text-white text-center p-4">
+                <div className="icon-container h-32 w-32 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-6">
+                  <svg className="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <h3 className="text-6xl font-bold uppercase tracking-wide drop-shadow-lg">Fast Delivery</h3>
+              </div>
+            </div>
+
+            {/* Card 3: Secure Payment */}
+            <div className="feature-card absolute inset-0 w-full h-full z-30 bg-gray-900 overflow-hidden flex items-center justify-center translate-y-full">
+              <video className="absolute inset-0 w-full h-full object-cover opacity-60" autoPlay loop muted playsInline>
+                <source src="/videos/Free Payment Videos- 4K & HD - No Watermark - Download Now.mp4" type="video/mp4" />
+              </video>
+              <div className="relative z-10 flex flex-col items-center justify-center text-white text-center p-4">
+                <div className="icon-container h-32 w-32 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-6">
+                  <svg className="w-16 h-16 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                  </svg>
+                </div>
+                <h3 className="text-6xl font-bold uppercase tracking-wide drop-shadow-lg">Secure Payment</h3>
+              </div>
+            </div>
+
+            {/* Card 4: Support Center */}
+            <div className="feature-card absolute inset-0 w-full h-full z-40 bg-gray-900 overflow-hidden flex items-center justify-center translate-y-full">
+              <video className="absolute inset-0 w-full h-full object-cover opacity-60" autoPlay loop muted playsInline>
+                <source src="/videos/Free Support Videos- 4K & HD - No Watermark - Download Now.mp4" type="video/mp4" />
+              </video>
+              <div className="relative z-10 flex flex-col items-center justify-center text-white text-center p-4">
+                <div className="icon-container h-32 w-32 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-6">
+                  <svg className="w-16 h-16 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <h3 className="text-6xl font-bold uppercase tracking-wide drop-shadow-lg">Support Center</h3>
+              </div>
+            </div>
+
           </div>
-        </motion.div>
+        </div>
       </section>
 
-      {/* ═══ FOOTER ═══ */}
-      <footer className="relative py-8 text-center text-white/30 text-sm">
-        <p>&copy; 2026 Murakami Kitchen. All rights reserved. Made with 🍣 in Cambodia.</p>
-      </footer>
+      {/* ─── 2. CATEGORIES SECTION (EJS our_category.ejs) ─── */}
+      <section id="our-menu" className="py-12 lg:py-16 bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 lg:mb-10 text-center">
+            <h2 className="text-2xl lg:text-3xl font-extrabold text-gray-900 dark:text-white scroll-hidden">
+              Our Categories
+            </h2>
+            <p className="text-sm lg:text-base text-gray-500 dark:text-gray-400 mt-2 scroll-hidden style-delay-100">
+              Explore our wide variety of Japanese delicacies
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-8">
+            {myCategories.map((cat, index) => {
+              const menuId = cat.name.trim().toLowerCase().replace(/\s+/g, "-");
+              return (
+                <Link
+                  key={cat.name}
+                  to={`/menu#${menuId}`}
+                  className="group relative h-40 lg:h-80 rounded-2xl lg:rounded-[2rem] overflow-hidden bg-gray-800 no-underline shadow-lg hover:shadow-2xl transition-all duration-300 scroll-hidden"
+                  style={{ transitionDelay: `${(index + 1) * 0.1}s` }}
+                >
+                  <div className="absolute inset-0 w-full h-full">
+                    <img
+                      src={cat.img}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      alt={cat.name}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-90 group-hover:opacity-80 transition-opacity duration-300"></div>
+                  </div>
+
+                  <div className="relative h-full p-4 lg:p-6 flex flex-col items-center justify-center text-center z-10">
+                    <div className="mb-2 lg:mb-4 transform transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-2">
+                      <span
+                        className="text-3xl lg:text-6xl drop-shadow-md text-white"
+                        dangerouslySetInnerHTML={{ __html: cat.icon }}
+                      ></span>
+                    </div>
+
+                    <h3 className="font-bold text-white text-lg lg:text-3xl mb-0 lg:mb-2 drop-shadow-md group-hover:-translate-y-2 transition-transform duration-300">
+                      {cat.name}
+                    </h3>
+
+                    <div className="hidden lg:block max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-500 ease-in-out overflow-hidden w-full px-4">
+                      <p className="text-gray-200 text-sm mb-4 leading-relaxed">{cat.desc}</p>
+                      <span className="inline-block px-6 py-2 bg-orange-500 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-md hover:bg-orange-600 transition-colors">
+                        View Items
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 3. BEST SELLERS SECTION (EJS mostsale.ejs) ─── */}
+      <section className="py-8 lg:py-16 bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-end mb-6 lg:mb-8 scroll-hidden">
+            <h2 className="text-2xl lg:text-3xl font-extrabold text-gray-900 dark:text-white">🔥 Most Sales</h2>
+            <Link to="/menu" className="text-orange-500 font-semibold hover:underline text-sm lg:text-base">
+              View All &rarr;
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-8">
+            {bestSellers.length > 0 ? (
+              bestSellers.map((product, index) => (
+                <div
+                  key={product.id}
+                  className="group relative h-64 lg:h-[450px] w-full rounded-2xl lg:rounded-[2rem] overflow-hidden shadow-md lg:shadow-xl transition-all duration-300 hover:shadow-2xl border border-gray-100 dark:border-gray-800 scroll-hidden"
+                  style={{ transitionDelay: `${index * 0.1}s` }}
+                >
+                  <div className="absolute inset-0 w-full h-full">
+                    {product.image_url ? (
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-800 flex items-center justify-center text-4xl lg:text-6xl">
+                        🍣
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300"></div>
+                  </div>
+
+                  <div className="absolute top-3 left-3 lg:top-5 lg:left-5 bg-yellow-400 text-black text-[10px] lg:text-xs font-bold px-2 py-1 lg:px-3 lg:py-1.5 rounded-full shadow-lg z-20 flex items-center gap-1">
+                    <i className="fa-solid fa-fire"></i> TOP HIT
+                  </div>
+
+                  <div className="absolute bottom-0 left-0 w-full p-3 lg:p-6 z-20 flex flex-col gap-0.5 lg:gap-2 translate-y-1 lg:translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    <span className="text-orange-400 text-[10px] lg:text-xs font-bold uppercase tracking-wider mb-0 lg:mb-1">
+                      {product.category} Favorite
+                    </span>
+
+                    <h3 className="text-white text-sm lg:text-2xl font-bold leading-tight shadow-black drop-shadow-md line-clamp-2">
+                      {product.name}
+                    </h3>
+
+                    <p className="hidden lg:block text-gray-300 text-sm line-clamp-2 mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+                      Delicious fresh ingredients prepared daily for maximum flavor.
+                    </p>
+
+                    <div className="flex items-center justify-between mt-1 lg:mt-2 pt-2 lg:pt-4 border-t border-white/20">
+                      <div className="flex flex-col">
+                        <span className="text-gray-400 text-[10px] lg:text-xs uppercase">Price</span>
+                        <span className="text-white text-lg lg:text-2xl font-extrabold">
+                          {Number(product.price).toFixed(2)} $
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => handleAddToCart(product.id)}
+                        className="w-8 h-8 lg:w-16 lg:h-16 bg-white dark:bg-gray-800 dark:text-orange-500 rounded-full flex items-center justify-center shadow-lg hover:bg-orange-500 hover:text-white transition-all transform active:scale-95"
+                      >
+                        <i className="fa-solid fa-basket-shopping text-xs lg:text-xl"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 col-span-2 lg:col-span-4 text-center py-10 scroll-hidden">
+                No best sellers available yet.
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

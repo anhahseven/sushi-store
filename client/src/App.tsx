@@ -8,7 +8,7 @@ import CustomerLayout from "./components/CustomerLayout";
 import AdminLayout from "./components/AdminLayout";
 
 // Guest / Customer Pages
-import Home from "./pages/Home";
+import { Home } from "./pages/Home";
 import { About } from "./pages/About";
 import { Locations } from "./pages/Locations";
 import { Menu } from "./pages/Menu";
