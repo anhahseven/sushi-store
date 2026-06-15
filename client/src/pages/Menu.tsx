@@ -140,7 +140,7 @@ export const Menu: React.FC = () => {
             ref={scrollContainerRef}
             className="w-full overflow-x-auto py-2 no-scrollbar scroll-smooth"
           >
-            <div className="flex flex-nowrap gap-2 sm:gap-3 justify-start md:justify-[safe_center]">
+            <div className="flex flex-nowrap gap-2 sm:gap-3 justify-start md:justify-[safe_center] px-4">
               {displayCategories.map((cat) => (
                 <button
                   key={cat.id}
