@@ -50,8 +50,8 @@ export default function setupPassport() {
     "google",
     new GoogleStrategy(
       {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        clientID: process.env.GOOGLE_CLIENT_ID || "dummy-id",
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET || "dummy-secret",
         callbackURL: `${baseUrl}/auth/google/secrets`,
         userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
       },
