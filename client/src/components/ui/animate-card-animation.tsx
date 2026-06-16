@@ -106,6 +106,10 @@ function CardContent({ card }: { card: Card }) {
 export default function AnimatedCardStack() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
+  const [heroStyles, setHeroStyles] = useState({
+    scale: 1,
+    borderRadius: "0px",
+  })
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger)
@@ -122,14 +126,41 @@ export default function AnimatedCardStack() {
       onUpdate: (self) => {
         const progress = self.progress
         const totalCards = cardData.length
-        const rawIndex = Math.floor(progress * totalCards)
+        
+        // 1. Navbar Visibility: hide when inside card stages (progress < 0.82), show when zooming out at the end
+        if (progress < 0.82) {
+          document.body.classList.add("hero-nav-hidden")
+        } else {
+          document.body.classList.remove("hero-nav-hidden")
+        }
+
+        // 2. Cycle cards within first 80% scroll progress (0.0 -> 0.8)
+        const cardProgress = Math.min(progress / 0.8, 1)
+        const rawIndex = Math.floor(cardProgress * totalCards)
         const index = Math.max(0, Math.min(rawIndex, totalCards - 1))
         setActiveIndex(index)
+
+        // 3. Zoom out effect in the final 20% scroll progress (0.8 -> 1.0)
+        if (progress > 0.8) {
+          const zoomProgress = (progress - 0.8) / 0.2
+          const targetScale = 1 - zoomProgress * 0.08 // scale down to 0.92
+          const targetRadius = `${zoomProgress * 24}px` // rounded corners up to 24px
+          setHeroStyles({
+            scale: targetScale,
+            borderRadius: targetRadius,
+          })
+        } else {
+          setHeroStyles({
+            scale: 1,
+            borderRadius: "0px",
+          })
+        }
       }
     })
 
     return () => {
       trigger.kill()
+      document.body.classList.remove("hero-nav-hidden")
     }
   }, [])
 
@@ -161,128 +192,141 @@ export default function AnimatedCardStack() {
   }
 
   return (
-    <div ref={containerRef} className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-slate-50 to-orange-50/20 dark:from-gray-950 dark:to-gray-900 flex items-center">
-      {/* Background Japanese Elements */}
-      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden opacity-10 dark:opacity-[0.03]">
-        <div className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full border-[80px] border-orange-500" />
-        <div className="absolute -bottom-1/4 -right-1/4 w-[600px] h-[600px] rounded-full border-[80px] border-orange-500" />
-      </div>
+    <div 
+      ref={containerRef} 
+      className="-mt-16 lg:-mt-20 w-full h-screen overflow-hidden bg-gray-900 dark:bg-black flex items-center justify-center"
+    >
+      {/* Inner Scalable Card Wrapper */}
+      <div
+        className="w-full h-full bg-gradient-to-br from-slate-50 to-orange-50/20 dark:from-gray-950 dark:to-gray-900 flex items-center transition-shadow duration-300 relative overflow-hidden"
+        style={{
+          transform: `scale(${heroStyles.scale})`,
+          borderRadius: heroStyles.borderRadius,
+          boxShadow: heroStyles.scale < 1 ? "0 25px 60px -15px rgba(0, 0, 0, 0.7)" : "none",
+        }}
+      >
+        {/* Background Japanese Elements */}
+        <div className="absolute inset-0 pointer-events-none select-none overflow-hidden opacity-10 dark:opacity-[0.03]">
+          <div className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full border-[80px] border-orange-500" />
+          <div className="absolute -bottom-1/4 -right-1/4 w-[600px] h-[600px] rounded-full border-[80px] border-orange-500" />
+        </div>
 
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
-        {/* Left column: Text content */}
-        <div className="flex flex-col justify-center gap-4 sm:gap-6 w-full lg:w-[48%] h-[35%] lg:h-auto text-left order-2 lg:order-1">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeIndex}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="flex flex-col gap-2 sm:gap-4"
-            >
-              <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-orange-100 dark:bg-orange-950/50 px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
-                <Sparkles size={12} className="animate-pulse" />
-                {cardData[activeIndex].tag}
-              </div>
-              
-              <h2 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
-                {cardData[activeIndex].title}
-              </h2>
-              
-              <p className="text-xs sm:text-base md:text-lg text-gray-600 dark:text-gray-300 leading-relaxed font-light">
-                {cardData[activeIndex].description}
-              </p>
-
-              <div className="flex items-center gap-4 sm:gap-6 mt-1 sm:mt-2">
-                <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                  <Utensils size={14} className="text-orange-500" />
-                  <span>Category: <strong className="font-semibold text-gray-700 dark:text-gray-200">{cardData[activeIndex].category}</strong></span>
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                  <Clock size={14} className="text-orange-500" />
-                  <span>Prep: <strong className="font-semibold text-gray-700 dark:text-gray-200">10-15m</strong></span>
-                </div>
-              </div>
-              
-              <div className="mt-2 sm:mt-4">
-                <Link
-                  to={`/menu#${cardData[activeIndex].category.toLowerCase()}`}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white text-xs sm:text-sm font-bold rounded-full shadow-lg shadow-orange-500/20 transition-all cursor-pointer"
-                >
-                  <span>Order Now</span>
-                  <ChevronRight size={16} />
-                </Link>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Progress bar & navigation */}
-          <div className="flex flex-col gap-2 w-full mt-4 border-t border-gray-100 dark:border-gray-900 pt-4">
-            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-              <span>Signature Experience</span>
-              <span>{String(activeIndex + 1).padStart(2, '0')} / 04</span>
-            </div>
-            <div className="h-1 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12 z-10">
+          {/* Left column: Text content */}
+          <div className="flex flex-col justify-center gap-4 sm:gap-6 w-full lg:w-[48%] h-[35%] lg:h-auto text-left order-2 lg:order-1">
+            <AnimatePresence mode="wait">
               <motion.div
-                className="h-full bg-orange-500 rounded-full"
-                animate={{ width: `${((activeIndex + 1) / cardData.length) * 100}%` }}
-                transition={{ type: "spring", stiffness: 100, damping: 15 }}
-              />
-            </div>
-            {/* Custom Dot Navigation triggers Scroll positions */}
-            <div className="flex gap-2 mt-2">
-              {cardData.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    const scrollTrigger = ScrollTrigger.getAll().find(st => st.vars.trigger === containerRef.current);
-                    if (scrollTrigger) {
-                      const scrollPos = scrollTrigger.start + (scrollTrigger.end - scrollTrigger.start) * (idx / 3);
-                      window.scrollTo({ top: scrollPos, behavior: "smooth" });
-                    }
-                  }}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    activeIndex === idx ? "w-8 bg-orange-500" : "w-1.5 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400"
-                  }`}
-                  aria-label={`Go to section ${idx + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+                key={activeIndex}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="flex flex-col gap-2 sm:gap-4"
+              >
+                <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-orange-100 dark:bg-orange-950/50 px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
+                  <Sparkles size={12} className="animate-pulse" />
+                  {cardData[activeIndex].tag}
+                </div>
+                
+                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
+                  {cardData[activeIndex].title}
+                </h2>
+                
+                <p className="text-xs sm:text-base md:text-lg text-gray-600 dark:text-gray-300 leading-relaxed font-light">
+                  {cardData[activeIndex].description}
+                </p>
 
-        {/* Right column: Card stack */}
-        <div className="relative flex items-center justify-center w-full lg:w-[48%] h-[50%] lg:h-[550px] order-1 lg:order-2">
-          <div className="relative w-[290px] h-[340px] xs:w-[320px] xs:h-[370px] sm:w-[380px] sm:h-[420px] md:w-[440px] md:h-[450px]">
-            {cardData.map((card, index) => {
-              const animatedStyles = getCardStyles(index, activeIndex)
-              return (
+                <div className="flex items-center gap-4 sm:gap-6 mt-1 sm:mt-2">
+                  <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    <Utensils size={14} className="text-orange-500" />
+                    <span>Category: <strong className="font-semibold text-gray-700 dark:text-gray-200">{cardData[activeIndex].category}</strong></span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    <Clock size={14} className="text-orange-500" />
+                    <span>Prep: <strong className="font-semibold text-gray-700 dark:text-gray-200">10-15m</strong></span>
+                  </div>
+                </div>
+                
+                <div className="mt-2 sm:mt-4">
+                  <Link
+                    to={`/menu#${cardData[activeIndex].category.toLowerCase()}`}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white text-xs sm:text-sm font-bold rounded-full shadow-lg shadow-orange-500/20 transition-all cursor-pointer"
+                  >
+                    <span>Order Now</span>
+                    <ChevronRight size={16} />
+                  </Link>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Progress bar & navigation */}
+            <div className="flex flex-col gap-2 w-full mt-4 border-t border-gray-100 dark:border-gray-900 pt-4">
+              <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                <span>Signature Experience</span>
+                <span>{String(activeIndex + 1).padStart(2, '0')} / 04</span>
+              </div>
+              <div className="h-1 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
                 <motion.div
-                  key={card.id}
-                  animate={animatedStyles}
-                  transition={{
-                    type: "spring",
-                    duration: 0.8,
-                    bounce: 0.1,
-                  }}
-                  className="absolute inset-0 origin-bottom"
-                >
-                  <CardContent card={card} />
-                </motion.div>
-              )
-            })}
+                  className="h-full bg-orange-500 rounded-full"
+                  animate={{ width: `${((activeIndex + 1) / cardData.length) * 100}%` }}
+                  transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                />
+              </div>
+              {/* Custom Dot Navigation triggers Scroll positions */}
+              <div className="flex gap-2 mt-2">
+                {cardData.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      const scrollTrigger = ScrollTrigger.getAll().find(st => st.vars.trigger === containerRef.current);
+                      if (scrollTrigger) {
+                        const scrollPos = scrollTrigger.start + (scrollTrigger.end - scrollTrigger.start) * (idx / 3);
+                        window.scrollTo({ top: scrollPos, behavior: "smooth" });
+                      }
+                    }}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      activeIndex === idx ? "w-8 bg-orange-500" : "w-1.5 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400"
+                    }`}
+                    aria-label={`Go to section ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right column: Card stack */}
+          <div className="relative flex items-center justify-center w-full lg:w-[48%] h-[50%] lg:h-[550px] order-1 lg:order-2">
+            <div className="relative w-[290px] h-[340px] xs:w-[320px] xs:h-[370px] sm:w-[380px] sm:h-[420px] md:w-[440px] md:h-[450px]">
+              {cardData.map((card, index) => {
+                const animatedStyles = getCardStyles(index, activeIndex)
+                return (
+                  <motion.div
+                    key={card.id}
+                    animate={animatedStyles}
+                    transition={{
+                      type: "spring",
+                      duration: 0.8,
+                      bounce: 0.1,
+                    }}
+                    className="absolute inset-0 origin-bottom"
+                  >
+                    <CardContent card={card} />
+                  </motion.div>
+                )
+              })}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Subtle Scroll Down Helper */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-1 z-20 opacity-55 dark:opacity-35 pointer-events-none">
-        <span className="text-[9px] tracking-widest uppercase font-bold text-gray-500 dark:text-gray-400">Scroll Down to Explore</span>
-        <motion.div
-          animate={{ y: [0, 4, 0] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-          className="w-1 h-2.5 bg-gray-500 dark:bg-gray-400 rounded-full"
-        />
+        {/* Subtle Scroll Down Helper */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-1 z-20 opacity-55 dark:opacity-35 pointer-events-none">
+          <span className="text-[9px] tracking-widest uppercase font-bold text-gray-500 dark:text-gray-400">Scroll Down to Explore</span>
+          <motion.div
+            animate={{ y: [0, 4, 0] }}
+            transition={{ repeat: Infinity, duration: 1.5 }}
+            className="w-1 h-2.5 bg-gray-500 dark:bg-gray-400 rounded-full"
+          />
+        </div>
       </div>
     </div>
   )
