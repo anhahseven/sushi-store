@@ -198,11 +198,15 @@ export default function AnimatedCardStack() {
     >
       {/* Inner Scalable Card Wrapper */}
       <div
-        className="w-full h-full bg-gradient-to-br from-slate-50 to-orange-50/20 dark:from-gray-950 dark:to-gray-900 flex items-center transition-shadow duration-300 relative overflow-hidden"
+        className={`w-full h-full bg-gradient-to-br from-slate-50 to-orange-50/20 dark:from-gray-950 dark:to-gray-900 flex items-center relative overflow-hidden transition-all duration-300 border ${
+          heroStyles.scale < 1 ? "border-gray-200/80 dark:border-gray-800/80" : "border-transparent"
+        }`}
         style={{
           transform: `scale(${heroStyles.scale})`,
           borderRadius: heroStyles.borderRadius,
-          boxShadow: heroStyles.scale < 1 ? "0 25px 60px -15px rgba(0, 0, 0, 0.7)" : "none",
+          boxShadow: heroStyles.scale < 1 
+            ? "0 40px 100px -15px rgba(0, 0, 0, 0.12), 0 20px 40px -20px rgba(0, 0, 0, 0.08), 0 2px 10px rgba(0, 0, 0, 0.02)" 
+            : "none",
         }}
       >
         {/* Background Japanese Elements */}
