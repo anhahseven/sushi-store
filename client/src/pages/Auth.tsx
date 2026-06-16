@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import * as THREE from "three";
+import InkReveal from "../components/ui/ink-reveal";
+import { Mail, Lock, ArrowLeft } from "lucide-react";
 import axios from "axios";
 
 export const Auth: React.FC = () => {
@@ -15,112 +16,9 @@ export const Auth: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [successMsg, setSuccessMsg] = useState<string>("");
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const API_BASE = import.meta.env.VITE_API_URL || "";
 
-  // Three.js background effect
-  useEffect(() => {
-    if (!canvasRef.current) return;
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current,
-      alpha: true,
-      antialias: true,
-    });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-
-    const vertexShader = `
-      uniform float time;
-      uniform float intensity;
-      varying vec2 vUv;
-      varying vec3 vPosition;
-      
-      void main() {
-        vUv = uv;
-        vPosition = position;
-        
-        vec3 pos = position;
-        pos.y += sin(pos.x * 10.0 + time) * 0.1 * intensity;
-        pos.x += cos(pos.y * 8.0 + time * 1.5) * 0.05 * intensity;
-        
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-      }
-    `;
-
-    const fragmentShader = `
-      uniform float time;
-      uniform float intensity;
-      uniform vec3 color1;
-      uniform vec3 color2;
-      varying vec2 vUv;
-      varying vec3 vPosition;
-      
-      void main() {
-        vec2 uv = vUv;
-        
-        float noise = sin(uv.x * 20.0 + time) * cos(uv.y * 15.0 + time * 0.8);
-        noise += sin(uv.x * 35.0 - time * 2.0) * cos(uv.y * 25.0 + time * 1.2) * 0.5;
-        
-        vec3 color = mix(color1, color2, noise * 0.5 + 0.5);
-        color = mix(color, vec3(1.0, 1.0, 1.0), pow(abs(noise), 2.0) * intensity * 0.7);
-        
-        float glow = 1.0 - length(uv - 0.5) * 1.5;
-        glow = clamp(glow, 0.0, 1.0);
-        glow = pow(glow, 1.5);
-        
-        gl_FragColor = vec4(color * glow, glow);
-      }
-    `;
-
-    const uniforms = {
-      time: { value: 0 },
-      intensity: { value: 1.0 },
-      color1: { value: new THREE.Color("#ffffff") },
-      color2: { value: new THREE.Color("#f97316") },
-    };
-
-    const material = new THREE.ShaderMaterial({
-      vertexShader,
-      fragmentShader,
-      uniforms,
-      transparent: true,
-      side: THREE.DoubleSide,
-    });
-
-    const geometry = new THREE.PlaneGeometry(2, 2, 32, 32);
-    const mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
-
-    const clock = new THREE.Clock();
-    let animationId: number;
-
-    const animate = () => {
-      animationId = requestAnimationFrame(animate);
-      const elapsedTime = clock.getElapsedTime();
-      uniforms.time.value = elapsedTime;
-      uniforms.intensity.value = 1.0 + Math.sin(elapsedTime * 2) * 0.3;
-      renderer.render(scene, camera);
-    };
-
-    animate();
-
-    const handleResize = () => {
-      if (!canvasRef.current) return;
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    };
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener("resize", handleResize);
-      geometry.dispose();
-      material.dispose();
-    };
-  }, []);
 
   const handleAuth = async (e: React.FormEvent, endpoint: string) => {
     e.preventDefault();
@@ -163,16 +61,23 @@ export const Auth: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-900 flex justify-center items-center flex-col font-sans h-screen w-screen px-4 relative overflow-hidden">
-      {/* Background canvas */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-0" />
+    <div className="relative flex justify-center items-center flex-col font-sans h-screen w-screen px-4 overflow-hidden bg-gray-50">
+      {/* Underlying Japanese Scenic Background Image */}
+      <img
+        src="https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=1600&q=80"
+        alt="Japanese scenic view background"
+        className="absolute inset-0 w-full h-full object-cover z-0 select-none pointer-events-none"
+      />
+
+      {/* InkReveal scratch-off canvas overlay (White overlay) */}
+      <InkReveal maskColor={[255, 255, 255]} className="absolute inset-0 w-full h-full z-10" />
 
       {/* Back to Home Button */}
       <Link
         to="/"
-        className="absolute top-6 left-6 z-20 flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full hover:bg-white/25 transition duration-300 shadow-lg font-semibold text-sm"
+        className="absolute top-6 left-6 z-20 flex items-center gap-2 px-5 py-2.5 bg-white/80 backdrop-blur-md border border-gray-200/50 text-gray-800 rounded-full hover:bg-white transition duration-300 shadow-md font-semibold text-sm"
       >
-        <i className="fa-solid fa-arrow-left"></i> Back to Home
+        <ArrowLeft className="w-4 h-4 text-orange-500" /> Back to Home
       </Link>
 
       {/* Notification Toast */}
@@ -203,14 +108,14 @@ export const Auth: React.FC = () => {
 
       {/* Auth Container */}
       <div
-        className={`bg-white rounded-[20px] shadow-2xl relative z-10 w-[768px] max-w-full min-h-[480px] overflow-hidden transition-all duration-600 ${
+        className={`bg-white/95 backdrop-blur-sm rounded-[32px] shadow-2xl border border-gray-100 relative z-20 w-[780px] max-w-full min-h-[500px] overflow-hidden transition-all duration-700 ease-in-out ${
           isSignUp ? "right-panel-active" : ""
         }`}
         id="container"
       >
         {/* Sign Up Panel */}
         <div
-          className={`absolute top-0 h-full transition-all duration-600 left-0 w-full md:w-1/2 ${
+          className={`absolute top-0 h-full transition-all duration-700 ease-in-out left-0 w-full md:w-1/2 ${
             isSignUp
               ? "opacity-100 z-5 translate-x-0 md:translate-x-full"
               : "opacity-0 z-1 pointer-events-none md:translate-x-0"
@@ -218,53 +123,68 @@ export const Auth: React.FC = () => {
         >
           <form
             onSubmit={(e) => handleAuth(e, "/register")}
-            className="bg-white flex flex-col items-center justify-center h-full px-8 md:px-12 text-center"
+            className="bg-transparent flex flex-col items-center justify-center h-full px-8 md:px-12 text-center"
           >
-            <h1 className="font-bold text-3xl mb-4">Create Account</h1>
+            <h1 className="font-bold text-3xl mb-1 text-gray-800 tracking-tight">Create Account</h1>
+            <p className="text-sm text-gray-500 mb-6">Join us to start ordering delicious sushi!</p>
 
-            <div className="flex gap-4 mb-4">
-              <a
-                href={`${API_BASE}/auth/google`}
-                className="border border-gray-200 rounded-full w-10 h-10 flex justify-center items-center hover:bg-orange-50 hover:border-orange-500 hover:text-orange-500 transition duration-300"
-              >
-                <i className="fab fa-google text-sm"></i>
-              </a>
+            <a
+              href={`${API_BASE}/auth/google`}
+              className="flex items-center justify-center gap-3 border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm font-semibold text-gray-700 hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600 transition duration-300 mb-4 shadow-sm bg-white"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.84 14.97 1 12 1 7.35 1 3.39 3.67 1.44 7.56l3.8 2.94C6.14 7.5 8.87 5.04 12 5.04z"/>
+                <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.28 1.48-1.12 2.73-2.38 3.58l3.7 2.87c2.16-1.99 3.41-4.92 3.41-8.6z"/>
+                <path fill="#FBBC05" d="M5.24 14.5a7.12 7.12 0 010-4.5L1.44 7.06a11.96 11.96 0 000 9.88l3.8-2.94z"/>
+                <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.7-2.87c-1.03.69-2.35 1.1-4.26 1.1-3.13 0-5.86-2.46-6.76-5.46L1.44 15.8C3.39 19.69 7.35 22 12 23z"/>
+              </svg>
+              <span>Continue with Google</span>
+            </a>
+
+            <div className="flex items-center w-full my-2">
+              <hr className="flex-grow border-gray-200" />
+              <span className="px-3 text-xs text-gray-400 uppercase">or</span>
+              <hr className="flex-grow border-gray-200" />
             </div>
 
-            <span className="text-xs text-gray-500 mb-4">
-              or use your email for registration
-            </span>
-
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              required
-              className="bg-gray-100 border-none px-4 py-3 mb-2 w-full rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-            />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              required
-              className="bg-gray-100 border-none px-4 py-3 mb-4 w-full rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-            />
+            <div className="relative w-full mb-3">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email Address"
+                autoComplete="email"
+                required
+                className="bg-gray-50/50 border border-gray-200 hover:border-orange-300 focus:border-orange-500 pl-12 pr-4 py-3 w-full rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-100 transition duration-300"
+              />
+            </div>
+            <div className="relative w-full mb-4">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Choose Password"
+                autoComplete="new-password"
+                required
+                className="bg-gray-50/50 border border-gray-200 hover:border-orange-300 focus:border-orange-500 pl-12 pr-4 py-3 w-full rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-100 transition duration-300"
+              />
+            </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="rounded-full border border-orange-500 bg-orange-500 text-white text-xs font-bold py-3 px-10 uppercase tracking-wider transition transform hover:bg-orange-600 hover:scale-105 active:scale-95 focus:outline-none"
+              className="w-full rounded-xl border border-orange-500 bg-orange-500 text-white text-sm font-bold py-3 uppercase tracking-wider transition transform hover:bg-orange-600 hover:scale-[1.02] active:scale-95 focus:outline-none shadow-md shadow-orange-500/20"
             >
-              {loading ? "Processing..." : "Sign Up"}
+              {loading ? "Creating..." : "Sign Up"}
             </button>
 
             <p className="md:hidden mt-6 text-sm text-gray-500">
               Already have an account?{" "}
               <a
                 onClick={() => setIsSignUp(false)}
-                className="text-orange-500 font-bold cursor-pointer"
+                className="text-orange-500 font-bold cursor-pointer hover:underline"
               >
                 Sign In
               </a>
@@ -274,7 +194,7 @@ export const Auth: React.FC = () => {
 
         {/* Sign In Panel */}
         <div
-          className={`absolute top-0 h-full transition-all duration-600 left-0 w-full md:w-1/2 ${
+          className={`absolute top-0 h-full transition-all duration-700 ease-in-out left-0 w-full md:w-1/2 ${
             isSignUp
               ? "opacity-0 z-1 pointer-events-none md:translate-x-full"
               : "opacity-100 z-5 translate-x-0"
@@ -282,55 +202,72 @@ export const Auth: React.FC = () => {
         >
           <form
             onSubmit={(e) => handleAuth(e, "/login")}
-            className="bg-white flex flex-col items-center justify-center h-full px-8 md:px-12 text-center"
+            className="bg-transparent flex flex-col items-center justify-center h-full px-8 md:px-12 text-center"
           >
-            <h1 className="font-bold text-3xl mb-4">Sign in</h1>
+            <h1 className="font-bold text-3xl mb-1 text-gray-800 tracking-tight">Welcome Back</h1>
+            <p className="text-sm text-gray-500 mb-6">We're so excited to see you again!</p>
 
-            <div className="flex gap-4 mb-4">
-              <a
-                href={`${API_BASE}/auth/google`}
-                className="border border-gray-200 rounded-full w-10 h-10 flex justify-center items-center hover:bg-orange-50 hover:border-orange-500 hover:text-orange-500 transition duration-300"
-              >
-                <i className="fab fa-google text-sm"></i>
-              </a>
+            <a
+              href={`${API_BASE}/auth/google`}
+              className="flex items-center justify-center gap-3 border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm font-semibold text-gray-700 hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600 transition duration-300 mb-4 shadow-sm bg-white"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.84 14.97 1 12 1 7.35 1 3.39 3.67 1.44 7.56l3.8 2.94C6.14 7.5 8.87 5.04 12 5.04z"/>
+                <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.28 1.48-1.12 2.73-2.38 3.58l3.7 2.87c2.16-1.99 3.41-4.92 3.41-8.6z"/>
+                <path fill="#FBBC05" d="M5.24 14.5a7.12 7.12 0 010-4.5L1.44 7.06a11.96 11.96 0 000 9.88l3.8-2.94z"/>
+                <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.7-2.87c-1.03.69-2.35 1.1-4.26 1.1-3.13 0-5.86-2.46-6.76-5.46L1.44 15.8C3.39 19.69 7.35 22 12 23z"/>
+              </svg>
+              <span>Continue with Google</span>
+            </a>
+
+            <div className="flex items-center w-full my-2">
+              <hr className="flex-grow border-gray-200" />
+              <span className="px-3 text-xs text-gray-400 uppercase">or</span>
+              <hr className="flex-grow border-gray-200" />
             </div>
 
-            <span className="text-xs text-gray-500 mb-4">or use your account</span>
+            <div className="relative w-full mb-3">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email Address"
+                autoComplete="username"
+                required
+                className="bg-gray-50/50 border border-gray-200 hover:border-orange-300 focus:border-orange-500 pl-12 pr-4 py-3 w-full rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-100 transition duration-300"
+              />
+            </div>
+            <div className="relative w-full mb-3">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                autoComplete="current-password"
+                required
+                className="bg-gray-50/50 border border-gray-200 hover:border-orange-300 focus:border-orange-500 pl-12 pr-4 py-3 w-full rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-100 transition duration-300"
+              />
+            </div>
 
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              required
-              className="bg-gray-100 border-none px-4 py-3 mb-2 w-full rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-            />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              required
-              className="bg-gray-100 border-none px-4 py-3 mb-2 w-full rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-            />
-
-            <a href="#" className="text-xs text-gray-400 mb-4 hover:text-orange-500 transition">
+            <a href="#" className="text-xs text-gray-400 mb-4 hover:text-orange-500 transition hover:underline self-end">
               Forgot your password?
             </a>
 
             <button
               type="submit"
               disabled={loading}
-              className="rounded-full border border-orange-500 bg-orange-500 text-white text-xs font-bold py-3 px-10 uppercase tracking-wider transition transform hover:bg-orange-600 hover:scale-105 active:scale-95 focus:outline-none"
+              className="w-full rounded-xl border border-orange-500 bg-orange-500 text-white text-sm font-bold py-3 uppercase tracking-wider transition transform hover:bg-orange-600 hover:scale-[1.02] active:scale-95 focus:outline-none shadow-md shadow-orange-500/20"
             >
-              {loading ? "Processing..." : "Sign In"}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
 
             <p className="md:hidden mt-6 text-sm text-gray-500">
               Don't have an account?{" "}
               <a
                 onClick={() => setIsSignUp(true)}
-                className="text-orange-500 font-bold cursor-pointer"
+                className="text-orange-500 font-bold cursor-pointer hover:underline"
               >
                 Sign Up
               </a>
@@ -339,27 +276,27 @@ export const Auth: React.FC = () => {
         </div>
 
         {/* Sliding overlay panel for desktop screens */}
-        <div className="hidden md:block absolute top-0 left-1/2 w-1/2 h-full overflow-hidden transition-transform duration-600 z-[100] overlay-container">
+        <div className="hidden md:block absolute top-0 left-1/2 w-1/2 h-full overflow-hidden transition-transform duration-700 ease-in-out z-[100] overlay-container">
           <div
-            className="bg-gradient-to-r from-orange-600 to-orange-500 text-white relative h-full w-[200%] -left-full transform transition-transform duration-600"
+            className="bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 text-white relative h-full w-[200%] -left-full transform transition-transform duration-700 ease-in-out"
             style={{
               transform: isSignUp ? "translateX(50%)" : "translateX(0)",
             }}
           >
             {/* Left Overlay (Welcome Back) */}
             <div
-              className="absolute flex items-center justify-center flex-col p-10 text-center top-0 h-full w-1/2 transition-transform duration-600"
+              className="absolute flex items-center justify-center flex-col p-10 text-center top-0 h-full w-1/2 transition-transform duration-700 ease-in-out"
               style={{
                 transform: isSignUp ? "translateX(0)" : "translateX(-20%)",
               }}
             >
-              <h1 className="font-bold text-3xl mb-4">Welcome Back!</h1>
-              <p className="text-sm font-thin leading-5 mb-8">
+              <h1 className="font-bold text-3xl mb-4 text-white">Welcome Back!</h1>
+              <p className="text-sm leading-6 mb-8 text-white/95 font-medium">
                 To keep connected with us please login with your personal info
               </p>
               <button
                 onClick={() => setIsSignUp(false)}
-                className="bg-transparent border border-white text-white rounded-full text-xs font-bold py-3 px-10 uppercase tracking-wider transition transform hover:bg-white hover:text-black focus:outline-none"
+                className="bg-transparent border-2 border-white text-white rounded-xl text-xs font-bold py-3 px-10 uppercase tracking-wider transition transform hover:bg-white hover:text-orange-600 hover:scale-105 active:scale-95 focus:outline-none shadow-md"
               >
                 Sign In
               </button>
@@ -367,18 +304,18 @@ export const Auth: React.FC = () => {
 
             {/* Right Overlay (Hello Friend) */}
             <div
-              className="absolute flex items-center justify-center flex-col p-10 text-center top-0 h-full w-1/2 right-0 transition-transform duration-600"
+              className="absolute flex items-center justify-center flex-col p-10 text-center top-0 h-full w-1/2 right-0 transition-transform duration-700 ease-in-out"
               style={{
                 transform: isSignUp ? "translateX(20%)" : "translateX(0)",
               }}
             >
-              <h1 className="font-bold text-3xl mb-4">Hello, Friend!</h1>
-              <p className="text-sm font-thin leading-5 mb-8">
+              <h1 className="font-bold text-3xl mb-4 text-white">Hello, Friend!</h1>
+              <p className="text-sm leading-6 mb-8 text-white/95 font-medium">
                 Enter your personal details and start your journey with Us
               </p>
               <button
                 onClick={() => setIsSignUp(true)}
-                className="bg-transparent border border-white text-white rounded-full text-xs font-bold py-3 px-10 uppercase tracking-wider transition transform hover:bg-white hover:text-black focus:outline-none"
+                className="bg-transparent border-2 border-white text-white rounded-xl text-xs font-bold py-3 px-10 uppercase tracking-wider transition transform hover:bg-white hover:text-orange-600 hover:scale-105 active:scale-95 focus:outline-none shadow-md"
               >
                 Sign Up
               </button>
