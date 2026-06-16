@@ -6,8 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <title>Welcome to Opulent POS</title>
+    <title>
+        <%= typeof title !=='undefined' ? title : 'Login / Register - Murakami Sushi' %>
+    </title>
     <style>
         /* TOAST ANIMATIONS */
         @keyframes slideIn {
@@ -38,16 +39,16 @@
         .container-box {
             position: relative;
             overflow: hidden;
-            width: 768px;
+            width: 780px;
             max-width: 100%;
-            min-height: 480px;
+            min-height: 500px;
         }
 
         .form-container {
             position: absolute;
             top: 0;
             height: 100%;
-            transition: all 0.6s ease-in-out;
+            transition: all 2.0s ease-in-out;
         }
 
         /* Sign In Form */
@@ -74,7 +75,7 @@
             transform: translateX(100%);
             opacity: 1;
             z-index: 5;
-            animation: show 0.6s;
+            animation: show 2.0s;
         }
 
         @keyframes show {
@@ -100,7 +101,7 @@
             width: 50%;
             height: 100%;
             overflow: hidden;
-            transition: transform 0.6s ease-in-out;
+            transition: transform 2.0s ease-in-out;
             z-index: 100;
         }
 
@@ -110,8 +111,8 @@
 
         .overlay {
             background: #f97316;
-            background: -webkit-linear-gradient(to right, #ea580c, #f97316);
-            background: linear-gradient(to right, #ea580c, #f97316);
+            background: -webkit-linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%);
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%);
             background-repeat: no-repeat;
             background-size: cover;
             background-position: 0 0;
@@ -121,7 +122,7 @@
             height: 100%;
             width: 200%;
             transform: translateX(0);
-            transition: transform 0.6s ease-in-out;
+            transition: transform 2.0s ease-in-out;
         }
 
         .container-box.right-panel-active .overlay {
@@ -140,7 +141,7 @@
             height: 100%;
             width: 50%;
             transform: translateX(0);
-            transition: transform 0.6s ease-in-out;
+            transition: transform 2.0s ease-in-out;
         }
 
         .overlay-left {
@@ -235,80 +236,130 @@
     </style>
 </head>
 
-<body class="bg-gray-900 flex justify-center items-center flex-col font-sans h-screen px-4 relative overflow-hidden">
-    
-    <!-- Three.js Background Canvas -->
-    <canvas id="shader-canvas" class="absolute inset-0 w-full h-full z-0"></canvas>
+<body class="relative flex justify-center items-center flex-col font-sans h-screen px-4 overflow-hidden bg-gray-50">
+
+    <!-- Underlying Japanese Scenic Background Image -->
+    <img src="https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=1600&q=80"
+        alt="Japanese scenic view background"
+        class="absolute inset-0 w-full h-full object-cover z-0 select-none pointer-events-none" />
+
+    <!-- InkReveal Canvas -->
+    <canvas id="ink-reveal-canvas" class="absolute inset-0 w-full h-full z-10"
+        style="position: absolute; inset: 0; z-index: 10; cursor: none;"></canvas>
 
     <!-- Back to Home Button -->
-    <a href="/" class="absolute top-6 left-6 z-20 flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full hover:bg-white/25 transition duration-300 shadow-lg font-semibold text-sm">
-        <i class="fa-solid fa-arrow-left"></i> Back to Home
+    <a href="/"
+        class="absolute top-6 left-6 z-20 flex items-center gap-2 px-5 py-2.5 bg-white/80 backdrop-blur-md border border-gray-200/50 text-gray-800 rounded-full hover:bg-white transition duration-300 shadow-md font-semibold text-sm">
+        <i class="fa-solid fa-arrow-left text-orange-500"></i> Back to Home
     </a>
 
     <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
-    <div class="container-box bg-white rounded-[20px] shadow-2xl relative z-10 <%= (typeof action !== 'undefined' && action === 'register') ? 'right-panel-active' : '' %>"
+    <div class="container-box bg-white/95 backdrop-blur-sm rounded-[32px] shadow-2xl border border-gray-100 relative z-20 <%= (typeof action !== 'undefined' && action === 'register') ? 'right-panel-active' : '' %>"
         id="container">
 
         <div class="form-container sign-up-container">
             <form onsubmit="handleAuth(event, '/register')"
-                class="bg-white flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
-                <h1 class="font-bold text-3xl mb-4">Create Account</h1>
+                class="bg-transparent flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
+                <h1 class="font-bold text-3xl mb-1 text-gray-800 tracking-tight">Create Account</h1>
+                <p class="text-sm text-gray-500 mb-6">Join us to start ordering delicious sushi!</p>
 
-                <div class="flex gap-4 mb-4">
-                    <a href="/auth/google"
-                        class="border border-gray-200 rounded-full w-10 h-10 flex justify-center items-center hover:bg-orange-50 hover:border-orange-500 hover:text-orange-500 transition duration-300">
-                        <i class="fab fa-google text-sm"></i>
-                    </a>
+                <a href="/auth/google"
+                    class="flex items-center justify-center gap-3 border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm font-semibold text-gray-700 hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600 transition duration-300 mb-4 shadow-sm bg-white">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#EA4335"
+                            d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.84 14.97 1 12 1 7.35 1 3.39 3.67 1.44 7.56l3.8 2.94C6.14 7.5 8.87 5.04 12 5.04z" />
+                        <path fill="#4285F4"
+                            d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.28 1.48-1.12 2.73-2.38 3.58l3.7 2.87c2.16-1.99 3.41-4.92 3.41-8.6z" />
+                        <path fill="#FBBC05"
+                            d="M5.24 14.5a7.12 7.12 0 010-4.5L1.44 7.06a11.96 11.96 0 000 9.88l3.8-2.94z" />
+                        <path fill="#34A853"
+                            d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.7-2.87c-1.03.69-2.35 1.1-4.26 1.1-3.13 0-5.86-2.46-6.76-5.46L1.44 15.8C3.39 19.69 7.35 22 12 23z" />
+                    </svg>
+                    <span>Continue with Google</span>
+                </a>
+
+                <div class="flex items-center w-full my-2">
+                    <hr class="flex-grow border-gray-200" />
+                    <span class="px-3 text-xs text-gray-400 uppercase">or</span>
+                    <hr class="flex-grow border-gray-200" />
                 </div>
 
-                <span class="text-xs text-gray-500 mb-4">or use your email for registration</span>
-
-                <input type="email" name="username" placeholder="Email" required
-                    class="bg-gray-100 border-none px-4 py-3 mb-2 w-full rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
-                <input type="password" name="password" placeholder="Password" required
-                    class="bg-gray-100 border-none px-4 py-3 mb-4 w-full rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                <div class="relative w-full mb-3">
+                    <i
+                        class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base"></i>
+                    <input type="email" name="username" placeholder="Email Address" autocomplete="email" required
+                        class="bg-gray-50/50 border border-gray-200 hover:border-orange-300 focus:border-orange-500 pl-12 pr-4 py-3 w-full rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-100 transition duration-300" />
+                </div>
+                <div class="relative w-full mb-4">
+                    <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base"></i>
+                    <input type="password" name="password" placeholder="Choose Password" autocomplete="new-password"
+                        required
+                        class="bg-gray-50/50 border border-gray-200 hover:border-orange-300 focus:border-orange-500 pl-12 pr-4 py-3 w-full rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-100 transition duration-300" />
+                </div>
 
                 <button type="submit"
-                    class="rounded-full border border-orange-500 bg-orange-500 text-white text-xs font-bold py-3 px-10 uppercase tracking-wider transition transform hover:bg-orange-600 hover:scale-105 active:scale-95 focus:outline-none">
+                    class="w-full rounded-xl border border-orange-500 bg-orange-500 text-white text-sm font-bold py-3 uppercase tracking-wider transition transform hover:bg-orange-600 hover:scale-[1.02] active:scale-95 focus:outline-none shadow-md shadow-orange-500/20">
                     Sign Up
                 </button>
 
                 <p class="mobile-toggle">
-                    Already have an account? <a id="mobileSignIn">Sign In</a>
+                    Already have an account? <a id="mobileSignIn" class="hover:underline">Sign In</a>
                 </p>
             </form>
         </div>
 
         <div class="form-container sign-in-container">
             <form onsubmit="handleAuth(event, '/login')"
-                class="bg-white flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
-                <h1 class="font-bold text-3xl mb-4">Sign in</h1>
+                class="bg-transparent flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
+                <h1 class="font-bold text-3xl mb-1 text-gray-800 tracking-tight">Welcome Back</h1>
+                <p class="text-sm text-gray-500 mb-6">We're so excited to see you again!</p>
 
-                <div class="flex gap-4 mb-4">
-                    <a href="/auth/google"
-                        class="border border-gray-200 rounded-full w-10 h-10 flex justify-center items-center hover:bg-orange-50 hover:border-orange-500 hover:text-orange-500 transition duration-300">
-                        <i class="fab fa-google text-sm"></i>
-                    </a>
+                <a href="/auth/google"
+                    class="flex items-center justify-center gap-3 border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm font-semibold text-gray-700 hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600 transition duration-300 mb-4 shadow-sm bg-white">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#EA4335"
+                            d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.84 14.97 1 12 1 7.35 1 3.39 3.67 1.44 7.56l3.8 2.94C6.14 7.5 8.87 5.04 12 5.04z" />
+                        <path fill="#4285F4"
+                            d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.28 1.48-1.12 2.73-2.38 3.58l3.7 2.87c2.16-1.99 3.41-4.92 3.41-8.6z" />
+                        <path fill="#FBBC05"
+                            d="M5.24 14.5a7.12 7.12 0 010-4.5L1.44 7.06a11.96 11.96 0 000 9.88l3.8-2.94z" />
+                        <path fill="#34A853"
+                            d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.7-2.87c-1.03.69-2.35 1.1-4.26 1.1-3.13 0-5.86-2.46-6.76-5.46L1.44 15.8C3.39 19.69 7.35 22 12 23z" />
+                    </svg>
+                    <span>Continue with Google</span>
+                </a>
+
+                <div class="flex items-center w-full my-2">
+                    <hr class="flex-grow border-gray-200" />
+                    <span class="px-3 text-xs text-gray-400 uppercase">or</span>
+                    <hr class="flex-grow border-gray-200" />
                 </div>
 
-                <span class="text-xs text-gray-500 mb-4">or use your account</span>
+                <div class="relative w-full mb-3">
+                    <i
+                        class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base"></i>
+                    <input type="email" name="username" placeholder="Email Address" autocomplete="username" required
+                        class="bg-gray-50/50 border border-gray-200 hover:border-orange-300 focus:border-orange-500 pl-12 pr-4 py-3 w-full rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-100 transition duration-300" />
+                </div>
+                <div class="relative w-full mb-3">
+                    <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base"></i>
+                    <input type="password" name="password" placeholder="Password" autocomplete="current-password"
+                        required
+                        class="bg-gray-50/50 border border-gray-200 hover:border-orange-300 focus:border-orange-500 pl-12 pr-4 py-3 w-full rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-100 transition duration-300" />
+                </div>
 
-                <input type="email" name="username" placeholder="Email" required
-                    class="bg-gray-100 border-none px-4 py-3 mb-2 w-full rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
-                <input type="password" name="password" placeholder="Password" required
-                    class="bg-gray-100 border-none px-4 py-3 mb-2 w-full rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
-
-                <a href="#" class="text-xs text-gray-400 mb-4 hover:text-orange-500 transition">Forgot your
-                    password?</a>
+                <a href="#"
+                    class="text-xs text-gray-400 mb-4 hover:text-orange-500 transition hover:underline self-end">Forgot
+                    your password?</a>
 
                 <button type="submit"
-                    class="rounded-full border border-orange-500 bg-orange-500 text-white text-xs font-bold py-3 px-10 uppercase tracking-wider transition transform hover:bg-orange-600 hover:scale-105 active:scale-95 focus:outline-none">
+                    class="w-full rounded-xl border border-orange-500 bg-orange-500 text-white text-sm font-bold py-3 uppercase tracking-wider transition transform hover:bg-orange-600 hover:scale-[1.02] active:scale-95 focus:outline-none shadow-md shadow-orange-500/20">
                     Sign In
                 </button>
 
                 <p class="mobile-toggle">
-                    Don't have an account? <a id="mobileSignUp">Sign Up</a>
+                    Don't have an account? <a id="mobileSignUp" class="hover:underline">Sign Up</a>
                 </p>
             </form>
         </div>
@@ -316,20 +367,22 @@
         <div class="overlay-container">
             <div class="overlay">
                 <div class="overlay-panel overlay-left">
-                    <h1 class="font-bold text-3xl mb-4">Welcome Back!</h1>
-                    <p class="text-sm font-thin leading-5 mb-8">To keep connected with us please login with your
+                    <h1 class="font-bold text-3xl mb-4 text-white">Welcome Back!</h1>
+                    <p class="text-sm leading-6 mb-8 text-white/95 font-medium">To keep connected with us please login
+                        with your
                         personal info</p>
                     <button
-                        class="bg-transparent border border-white text-white rounded-full text-xs font-bold py-3 px-10 uppercase tracking-wider transition transform hover:bg-white hover:text-black focus:outline-none"
+                        class="bg-transparent border-2 border-white text-white rounded-xl text-xs font-bold py-3 px-10 uppercase tracking-wider transition transform hover:bg-white hover:text-orange-600 hover:scale-105 active:scale-95 focus:outline-none shadow-md"
                         id="signIn">Sign In</button>
                 </div>
 
                 <div class="overlay-panel overlay-right">
-                    <h1 class="font-bold text-3xl mb-4">Hello, Friend!</h1>
-                    <p class="text-sm font-thin leading-5 mb-8">Enter your personal details and start your journey with
+                    <h1 class="font-bold text-3xl mb-4 text-white">Hello, Friend!</h1>
+                    <p class="text-sm leading-6 mb-8 text-white/95 font-medium">Enter your personal details and start
+                        your journey with
                         Us</p>
                     <button
-                        class="bg-transparent border border-white text-white rounded-full text-xs font-bold py-3 px-10 uppercase tracking-wider transition transform hover:bg-white hover:text-black focus:outline-none"
+                        class="bg-transparent border-2 border-white text-white rounded-xl text-xs font-bold py-3 px-10 uppercase tracking-wider transition transform hover:bg-white hover:text-orange-600 hover:scale-105 active:scale-95 focus:outline-none shadow-md"
                         id="signUp">Sign Up</button>
                 </div>
             </div>
@@ -454,99 +507,156 @@
             }
         }
     </script>
-    
-    <!-- Three.js Shader Background Implementation -->
+
+    <!-- InkReveal Canvas Implementation -->
     <script>
-        const canvas = document.getElementById('shader-canvas');
-        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        const canvas = document.getElementById('ink-reveal-canvas');
+        const stamps = [];
+        const maxStamps = 200;
+        const brushSize = 128;
+        const rVary = 0.45;
+        const stampStep = 10;
+        const lifetime = 600;
+        const rStart = 10;
+        const segments = 36;
+        const wobble = [0.14, 0.08, 0.05];
+        const gradientInnerRadius = 0.2;
+        const gradientStops = [0.95, 0.88, 0];
+        const mc = [255, 255, 255]; // Pure White Mask overlay
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        let running = false;
+        let lastPos = null;
+        let dims = { w: 0, h: 0 };
 
-        const vertexShader = `
-          uniform float time;
-          uniform float intensity;
-          varying vec2 vUv;
-          varying vec3 vPosition;
-          
-          void main() {
-            vUv = uv;
-            vPosition = position;
-            
-            vec3 pos = position;
-            pos.y += sin(pos.x * 10.0 + time) * 0.1 * intensity;
-            pos.x += cos(pos.y * 8.0 + time * 1.5) * 0.05 * intensity;
-            
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-          }
-        `;
-
-        const fragmentShader = `
-          uniform float time;
-          uniform float intensity;
-          uniform vec3 color1;
-          uniform vec3 color2;
-          varying vec2 vUv;
-          varying vec3 vPosition;
-          
-          void main() {
-            vec2 uv = vUv;
-            
-            // Create animated noise pattern
-            float noise = sin(uv.x * 20.0 + time) * cos(uv.y * 15.0 + time * 0.8);
-            noise += sin(uv.x * 35.0 - time * 2.0) * cos(uv.y * 25.0 + time * 1.2) * 0.5;
-            
-            // Mix colors based on noise and position
-            vec3 color = mix(color1, color2, noise * 0.5 + 0.5);
-            // Mix with a bright white highlight to make white and orange stand out
-            color = mix(color, vec3(1.0, 1.0, 1.0), pow(abs(noise), 2.0) * intensity * 0.7);
-            
-            // Add glow effect
-            float glow = 1.0 - length(uv - 0.5) * 1.5; // expanded glow radius
-            glow = clamp(glow, 0.0, 1.0);
-            glow = pow(glow, 1.5);
-            
-            // Output color with higher alpha
-            gl_FragColor = vec4(color * glow, glow);
-          }
-        `;
-
-        // Background animation colors: White and Orange
-        const uniforms = {
-            time: { value: 0 },
-            intensity: { value: 1.0 },
-            color1: { value: new THREE.Color("#ffffff") }, // Pure White
-            color2: { value: new THREE.Color("#f97316") }  // Vibrant Orange
-        };
-
-        const material = new THREE.ShaderMaterial({
-            vertexShader,
-            fragmentShader,
-            uniforms,
-            transparent: true,
-            side: THREE.DoubleSide
-        });
-
-        const geometry = new THREE.PlaneGeometry(2, 2, 32, 32);
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
-
-        const clock = new THREE.Clock();
-
-        function animate() {
-            requestAnimationFrame(animate);
-            const elapsedTime = clock.getElapsedTime();
-            uniforms.time.value = elapsedTime;
-            uniforms.intensity.value = 1.0 + Math.sin(elapsedTime * 2) * 0.3;
-            renderer.render(scene, camera);
+        function resize() {
+            const parent = canvas.parentElement;
+            if (!parent) return;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const rect = parent.getBoundingClientRect();
+            const w = rect.width;
+            const h = rect.height;
+            dims = { w, h };
+            canvas.width = Math.round(w * dpr);
+            canvas.height = Math.round(h * dpr);
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = `rgb(${mc[0]},${mc[1]},${mc[2]})`;
+            ctx.fillRect(0, 0, w, h);
         }
 
-        animate();
+        window.addEventListener('resize', resize);
+        resize();
 
-        window.addEventListener('resize', () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
+        function carveInk(ctx, x, y, r, seed, alpha) {
+            const g = ctx.createRadialGradient(x, y, r * gradientInnerRadius, x, y, r);
+            g.addColorStop(0, `rgba(0,0,0,${gradientStops[0] * alpha})`);
+            g.addColorStop(0.5, `rgba(0,0,0,${gradientStops[1] * alpha})`);
+            g.addColorStop(1, `rgba(0,0,0,${gradientStops[2] * alpha})`);
+            ctx.fillStyle = g;
+
+            ctx.beginPath();
+            for (let i = 0; i <= segments; i++) {
+                const a = (i / segments) * Math.PI * 2;
+                const wob = 0.78 +
+                    wobble[0] * Math.sin(a * 3 + seed) +
+                    wobble[1] * Math.sin(a * 5 + seed * 2.1) +
+                    wobble[2] * Math.sin(a * 7 + seed * 0.7);
+                const px = x + Math.cos(a) * r * wob;
+                const py = y + Math.sin(a) * r * wob;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function addStamp(x, y) {
+            if (stamps.length >= maxStamps) stamps.shift();
+            stamps.push({
+                x,
+                y,
+                born: performance.now(),
+                seed: Math.random() * Math.PI * 2,
+                rmax: brushSize * (1 - rVary + Math.random() * rVary)
+            });
+        }
+
+        function stampAlong(x, y) {
+            if (!lastPos) {
+                addStamp(x, y);
+            } else {
+                const dx = x - lastPos.x;
+                const dy = y - lastPos.y;
+                const dist = Math.hypot(dx, dy);
+                const steps = Math.max(1, Math.ceil(dist / stampStep));
+                for (let i = 1; i <= steps; i++) {
+                    addStamp(lastPos.x + (dx * i) / steps, lastPos.y + (dy * i) / steps);
+                }
+            }
+            lastPos = { x, y };
+        }
+
+        function loop() {
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            const { w, h } = dims;
+            const now = performance.now();
+
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = `rgb(${mc[0]},${mc[1]},${mc[2]})`;
+            ctx.fillRect(0, 0, w, h);
+            ctx.globalCompositeOperation = 'destination-out';
+
+            for (let i = stamps.length - 1; i >= 0; i--) {
+                const t = (now - stamps[i].born) / lifetime;
+                if (t >= 1) {
+                    stamps.splice(i, 1);
+                    continue;
+                }
+                const ease = 1 - Math.pow(1 - t, 3);
+                const r = rStart + (stamps[i].rmax - rStart) * ease;
+                const alpha = 1 - t * t;
+                carveInk(ctx, stamps[i].x, stamps[i].y, r, stamps[i].seed, alpha);
+            }
+
+            if (stamps.length) {
+                requestAnimationFrame(loop);
+            } else {
+                running = false;
+            }
+        }
+
+        function startLoop() {
+            if (!running) {
+                running = true;
+                requestAnimationFrame(loop);
+            }
+        }
+
+        function getRelativePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        canvas.addEventListener('mouseenter', (e) => {
+            const pos = getRelativePos(e);
+            lastPos = pos;
+            stampAlong(pos.x, pos.y);
+            startLoop();
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getRelativePos(e);
+            stampAlong(pos.x, pos.y);
+            startLoop();
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            lastPos = null;
         });
     </script>
 </body>

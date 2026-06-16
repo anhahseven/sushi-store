@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useCart } from "../context/CartContext";
 import Swal from "sweetalert2";
+import { CardSkeleton } from "../components/ui/Skeleton";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -58,6 +59,7 @@ const myCategories = [
 
 export function Home() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -67,7 +69,8 @@ export function Home() {
         const rawProducts = res.data.products || res.data || [];
         setProducts(Array.isArray(rawProducts) ? rawProducts : []);
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   // 1. GSAP Scroll Animation
@@ -219,7 +222,7 @@ export function Home() {
             {/* Card 1: Always Fresh */}
             <div className="feature-card absolute inset-0 w-full h-full z-10 bg-gray-900 overflow-hidden flex items-center justify-center">
               <video className="absolute inset-0 w-full h-full object-cover opacity-60" autoPlay loop muted playsInline>
-                <source src="/videos/Fresh salmon sushi, close up - Free Stock Video.mp4" type="video/mp4" />
+                <source src="/videos/always-fresh.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
               <div className="relative z-10 flex flex-col items-center justify-center text-white text-center p-4">
@@ -235,7 +238,7 @@ export function Home() {
             {/* Card 2: Fast Delivery */}
             <div className="feature-card absolute inset-0 w-full h-full z-20 bg-gray-900 overflow-hidden flex items-center justify-center translate-y-full">
               <video className="absolute inset-0 w-full h-full object-cover opacity-60" autoPlay loop muted playsInline>
-                <source src="/videos/4605490-uhd_2160_4096_25fps.mp4" type="video/mp4" />
+                <source src="/videos/fast-delivery.mp4" type="video/mp4" />
               </video>
               <div className="relative z-10 flex flex-col items-center justify-center text-white text-center p-4">
                 <div className="icon-container h-32 w-32 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-6">
@@ -250,7 +253,7 @@ export function Home() {
             {/* Card 3: Secure Payment */}
             <div className="feature-card absolute inset-0 w-full h-full z-30 bg-gray-900 overflow-hidden flex items-center justify-center translate-y-full">
               <video className="absolute inset-0 w-full h-full object-cover opacity-60" autoPlay loop muted playsInline>
-                <source src="/videos/Free Payment Videos- 4K & HD - No Watermark - Download Now.mp4" type="video/mp4" />
+                <source src="/videos/secure-payment.mp4" type="video/mp4" />
               </video>
               <div className="relative z-10 flex flex-col items-center justify-center text-white text-center p-4">
                 <div className="icon-container h-32 w-32 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-6">
@@ -265,7 +268,7 @@ export function Home() {
             {/* Card 4: Support Center */}
             <div className="feature-card absolute inset-0 w-full h-full z-40 bg-gray-900 overflow-hidden flex items-center justify-center translate-y-full">
               <video className="absolute inset-0 w-full h-full object-cover opacity-60" autoPlay loop muted playsInline>
-                <source src="/videos/Free Support Videos- 4K & HD - No Watermark - Download Now.mp4" type="video/mp4" />
+                <source src="/videos/support-center.mp4" type="video/mp4" />
               </video>
               <div className="relative z-10 flex flex-col items-center justify-center text-white text-center p-4">
                 <div className="icon-container h-32 w-32 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-6">
@@ -349,7 +352,9 @@ export function Home() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-8">
-            {bestSellers.length > 0 ? (
+            {loading ? (
+              <CardSkeleton count={4} heightClass="h-64 lg:h-[450px]" />
+            ) : bestSellers.length > 0 ? (
               bestSellers.map((product, index) => (
                 <div
                   key={product.id}

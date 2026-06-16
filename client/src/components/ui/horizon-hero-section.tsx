@@ -244,7 +244,7 @@ export default function HorizonHeroSection() {
       {/* Background Video */}
       <video
         ref={videoRef}
-        src="/videos/please_remove_first_sushi_stay.mp4#t=1"
+        src="/videos/always-fresh.mp4#t=1"
         muted
         playsInline
         preload="auto"

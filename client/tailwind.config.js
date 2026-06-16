@@ -10,6 +10,7 @@ export default {
       animation: {
         "slide-in": "slideIn 0.3s ease-out",
         "fade-up": "fadeUp 0.4s ease-out",
+        shimmer: "shimmer 1.5s infinite",
       },
       keyframes: {
         slideIn: {
@@ -19,6 +20,9 @@ export default {
         fadeUp: {
           "0%": { transform: "translateY(10px)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        shimmer: {
+          "100%": { transform: "translateX(100%)" },
         },
       },
     },

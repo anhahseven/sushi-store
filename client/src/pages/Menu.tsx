@@ -3,6 +3,7 @@ import axios from "axios";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { CategorySkeleton, CardSkeleton } from "../components/ui/Skeleton";
 
 interface Product {
   id: string | number;
@@ -141,19 +142,23 @@ export const Menu: React.FC = () => {
             className="w-full overflow-x-auto py-2 no-scrollbar scroll-smooth"
           >
             <div className="flex flex-nowrap gap-2 sm:gap-3 justify-start md:justify-[safe_center] px-4">
-              {displayCategories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.name)}
-                  className={`whitespace-nowrap px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-full font-bold text-xs sm:text-sm md:text-base lg:text-lg transition-all shadow-md transform active:scale-95 flex-shrink-0 ${
-                    activeCategory === cat.name
-                      ? "bg-orange-500 text-white scale-105"
-                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 hover:text-orange-500"
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
+              {loading ? (
+                <CategorySkeleton count={6} />
+              ) : (
+                displayCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.name)}
+                    className={`whitespace-nowrap px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-full font-bold text-xs sm:text-sm md:text-base lg:text-lg transition-all flex-shrink-0 ${
+                      activeCategory === cat.name
+                        ? "bg-orange-500 text-white shadow-3d-orange scale-105"
+                        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 shadow-3d-gray hover:bg-orange-50 dark:hover:bg-gray-700 hover:text-orange-500"
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))
+              )}
             </div>
           </div>
 
@@ -171,7 +176,14 @@ export const Menu: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading menu...</div>
+        <div className="space-y-12">
+          <section className="mb-12 lg:mb-24">
+            <div className="w-48 h-10 mb-6 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-lg" />
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-10">
+              <CardSkeleton count={6} heightClass="h-64 lg:h-[450px]" />
+            </div>
+          </section>
+        </div>
       ) : (
         <div className="space-y-12">
           {/* Group products by categories */}

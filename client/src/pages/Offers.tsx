@@ -3,6 +3,7 @@ import axios from "axios";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import { CardSkeleton, OfferBannerSkeleton } from "../components/ui/Skeleton";
 
 interface DiscountProduct {
   id: string | number;
@@ -95,27 +96,31 @@ export const Offers: React.FC = () => {
         </div>
 
         {/* Hero banner deal */}
-        <div className="relative w-full h-64 md:h-80 rounded-3xl overflow-hidden mb-12 group shadow-xl">
-          <img
-            src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=2070"
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            alt="Sushi Platter"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent flex items-center px-8 md:px-16">
-            <div className="text-white max-w-lg">
-              <h2 className="text-3xl md:text-5xl font-bold mb-4">50% OFF Second Set</h2>
-              <p className="mb-6 opacity-90">
-                Order any Dragon Set and get the second one half price. Perfect for sharing.
-              </p>
-              <a
-                href="#deals"
-                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-bold transition-all transform hover:translate-y-[-2px] inline-block"
-              >
-                Order Now
-              </a>
+        {loading ? (
+          <OfferBannerSkeleton />
+        ) : (
+          <div className="relative w-full h-64 md:h-80 rounded-3xl overflow-hidden mb-12 group shadow-xl">
+            <img
+              src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=2070"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              alt="Sushi Platter"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent flex items-center px-8 md:px-16">
+              <div className="text-white max-w-lg">
+                <h2 className="text-3xl md:text-5xl font-bold mb-4">50% OFF Second Set</h2>
+                <p className="mb-6 opacity-90">
+                  Order any Dragon Set and get the second one half price. Perfect for sharing.
+                </p>
+                <a
+                  href="#deals"
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-bold transition-all transform hover:translate-y-[-2px] inline-block"
+                >
+                  Order Now
+                </a>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Dynamic Deals */}
         <div className="mb-10" id="deals">
@@ -124,7 +129,9 @@ export const Offers: React.FC = () => {
           </h2>
 
           {loading ? (
-            <div className="text-center py-10 text-gray-500">Loading offers...</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+              <CardSkeleton count={3} heightClass="h-[450px]" />
+            </div>
           ) : products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
               {products.map((product) => {

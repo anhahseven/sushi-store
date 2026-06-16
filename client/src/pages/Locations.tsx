@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { CardSkeleton } from "../components/ui/Skeleton";
 
 interface LocationItem {
   id: number;
@@ -53,7 +54,9 @@ export const Locations: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-10 text-gray-500">Loading locations...</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch mt-6">
+            <CardSkeleton count={3} heightClass="h-96" />
+          </div>
         ) : error ? (
           <div className="text-center py-10 text-red-500">{error}</div>
         ) : locations.length > 0 ? (

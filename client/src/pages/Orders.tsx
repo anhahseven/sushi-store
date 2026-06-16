@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { TableSkeleton } from "../components/ui/Skeleton";
 
 interface Order {
   id: number;
@@ -100,114 +101,112 @@ export const Orders: React.FC = () => {
           </span>
         </div>
 
-        {loading ? (
-          <div className="text-center py-20 text-gray-500">Loading orders...</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 text-sm uppercase font-bold">
-                <tr>
-                  <th className="p-5">ID</th>
-                  <th className="p-5">Date</th>
-                  <th className="p-5">Pickup Location</th>
-                  <th className="p-5">Payment</th>
-                  <th className="p-5">Total</th>
-                  <th className="p-5">Status</th>
-                  <th className="p-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {orders.length > 0 ? (
-                  orders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition duration-200"
-                    >
-                      <td className="p-5 font-mono text-sm text-gray-600 dark:text-gray-400">
-                        #{order.id}
-                      </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 text-sm uppercase font-bold">
+              <tr>
+                <th className="p-5">ID</th>
+                <th className="p-5">Date</th>
+                <th className="p-5">Pickup Location</th>
+                <th className="p-5">Payment</th>
+                <th className="p-5">Total</th>
+                <th className="p-5">Status</th>
+                <th className="p-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+              {loading ? (
+                <TableSkeleton rows={5} cols={7} />
+              ) : orders.length > 0 ? (
+                orders.map((order) => (
+                  <tr
+                    key={order.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition duration-200"
+                  >
+                    <td className="p-5 font-mono text-sm text-gray-600 dark:text-gray-400">
+                      #{order.id}
+                    </td>
 
-                      <td className="p-5 text-sm font-medium text-gray-700 dark:text-white">
-                        {new Date(order.created_at).toLocaleDateString()}
-                        <span className="text-xs text-gray-400 block font-normal">
-                          {new Date(order.created_at).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      </td>
+                    <td className="p-5 text-sm font-medium text-gray-700 dark:text-white">
+                      {new Date(order.created_at).toLocaleDateString()}
+                      <span className="text-xs text-gray-400 block font-normal">
+                        {new Date(order.created_at).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </td>
 
-                      <td className="p-5 text-sm text-gray-600 dark:text-gray-300">
-                        <div className="flex items-center gap-2">
-                          <i className="fa-solid fa-store text-gray-400"></i>
-                          {order.pickup_location}
-                        </div>
-                        {order.table_number && (
-                          <div className="mt-1">
-                            <span className="text-[10px] font-bold bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">
-                              Table {order.table_number}
-                            </span>
-                          </div>
-                        )}
-                      </td>
-
-                      <td className="p-5">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-bold ${
-                            order.payment_method === "QR"
-                              ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400"
-                              : "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400"
-                          }`}
-                        >
-                          {order.payment_method}
-                        </span>
-                      </td>
-
-                      <td className="p-5 font-bold text-gray-800 dark:text-white">
-                        {Number(order.total_price).toFixed(2)} $
-                      </td>
-
-                      <td className="p-5">
-                        <span className={`px-3 py-1 rounded text-xs font-bold ${getStatusColor(order.status)}`}>
-                          {order.status}
-                        </span>
-                      </td>
-
-                      <td className="p-5 text-right">
-                        {order.status === "Pending" ? (
-                          <button
-                            onClick={() => handleRequestCancel(order.id)}
-                            className="px-3 py-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 text-xs font-bold transition shadow-sm border border-red-100 dark:border-red-800"
-                          >
-                            Request Cancel
-                          </button>
-                        ) : order.status === "Completed" ? (
-                          <button
-                            onClick={() => handleRequestRefund(order.id)}
-                            className="px-3 py-1.5 bg-blue-50 dark:bg-red-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 text-xs font-bold transition shadow-sm border border-blue-100 dark:border-blue-800"
-                          >
-                            Request Refund
-                          </button>
-                        ) : (
-                          <span className="text-gray-300 dark:text-gray-600 text-xs italic">
-                            No actions
+                    <td className="p-5 text-sm text-gray-600 dark:text-gray-300">
+                      <div className="flex items-center gap-2">
+                        <i className="fa-solid fa-store text-gray-400"></i>
+                        {order.pickup_location}
+                      </div>
+                      {order.table_number && (
+                        <div className="mt-1">
+                          <span className="text-[10px] font-bold bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">
+                            Table {order.table_number}
                           </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="p-12 text-center text-gray-400 dark:text-gray-500">
-                      <i className="fa-solid fa-basket-shopping text-4xl mb-3 block opacity-20"></i>
-                      No orders found.
+                        </div>
+                      )}
+                    </td>
+
+                    <td className="p-5">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-bold ${
+                          order.payment_method === "QR"
+                            ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400"
+                            : "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400"
+                        }`}
+                      >
+                        {order.payment_method}
+                      </span>
+                    </td>
+
+                    <td className="p-5 font-bold text-gray-800 dark:text-white">
+                      {Number(order.total_price).toFixed(2)} $
+                    </td>
+
+                    <td className="p-5">
+                      <span className={`px-3 py-1 rounded text-xs font-bold ${getStatusColor(order.status)}`}>
+                        {order.status}
+                      </span>
+                    </td>
+
+                    <td className="p-5 text-right">
+                      {order.status === "Pending" ? (
+                        <button
+                          onClick={() => handleRequestCancel(order.id)}
+                          className="px-3 py-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 text-xs font-bold transition shadow-sm border border-red-100 dark:border-red-800"
+                        >
+                          Request Cancel
+                        </button>
+                      ) : order.status === "Completed" ? (
+                        <button
+                          onClick={() => handleRequestRefund(order.id)}
+                          className="px-3 py-1.5 bg-blue-50 dark:bg-red-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 text-xs font-bold transition shadow-sm border border-blue-100 dark:border-blue-800"
+                        >
+                          Request Refund
+                        </button>
+                      ) : (
+                        <span className="text-gray-300 dark:text-gray-600 text-xs italic">
+                          No actions
+                        </span>
+                      )}
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="p-12 text-center text-gray-400 dark:text-gray-500">
+                    <i className="fa-solid fa-basket-shopping text-4xl mb-3 block opacity-20"></i>
+                    No orders found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

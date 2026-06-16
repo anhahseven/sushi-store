@@ -1,6 +1,45 @@
 <%- include('partials/header.ejs') %>
 <%- include('partials/nav.ejs') %>
 
+<!-- Global Shimmering Page Skeleton Screen -->
+<div id="global-page-skeleton" class="fixed inset-0 pt-24 pb-8 px-6 bg-gray-50 dark:bg-gray-950 z-[49] flex flex-col transition-opacity duration-300 pointer-events-none">
+  <div class="max-w-7xl mx-auto w-full flex-1 flex flex-col gap-8">
+    <!-- Shimmering Banner -->
+    <div class="w-full h-64 md:h-80 bg-gray-200 dark:bg-gray-900 rounded-[2rem] relative overflow-hidden animate-pulse">
+      <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent animate-[shimmer_1.5s_infinite]"></div>
+    </div>
+    <!-- Shimmering Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 flex-1">
+      <div class="bg-gray-200 dark:bg-gray-900 rounded-[2rem] h-96 relative overflow-hidden animate-pulse">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent animate-[shimmer_1.5s_infinite]"></div>
+      </div>
+      <div class="bg-gray-200 dark:bg-gray-900 rounded-[2rem] h-96 relative overflow-hidden animate-pulse">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent animate-[shimmer_1.5s_infinite]"></div>
+      </div>
+      <div class="bg-gray-200 dark:bg-gray-900 rounded-[2rem] h-96 relative overflow-hidden animate-pulse">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent animate-[shimmer_1.5s_infinite]"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+</style>
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const skeleton = document.getElementById('global-page-skeleton');
+    if (skeleton) {
+      skeleton.classList.add('opacity-0');
+      setTimeout(() => skeleton.remove(), 300);
+    }
+  });
+</script>
+
 <main class="min-h-screen w-full">
     <%- body %>
 </main>

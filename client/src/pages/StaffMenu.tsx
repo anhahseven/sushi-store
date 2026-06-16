@@ -121,10 +121,10 @@ export const StaffMenu: React.FC = () => {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.name)}
-                className={`whitespace-nowrap px-5 py-2 rounded-full font-bold text-sm transition-all shadow-sm flex-shrink-0 ${
+                className={`whitespace-nowrap px-5 py-2 rounded-full font-bold text-sm transition-all flex-shrink-0 ${
                   activeCategory === cat.name
-                    ? "bg-indigo-600 text-white scale-105"
-                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    ? "bg-indigo-600 text-white shadow-3d-indigo scale-105"
+                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-3d-gray hover:bg-gray-50 dark:hover:bg-gray-700"
                 }`}
               >
                 {cat.name}

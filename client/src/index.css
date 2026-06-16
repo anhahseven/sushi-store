@@ -31,6 +31,68 @@ html.dark body {
 .perspective-1200 { perspective: 1200px; }
 .preserve-3d { transform-style: preserve-3d; }
 
+/* ── 3D Button Shadows & Presses ── */
+.shadow-3d-orange {
+  box-shadow: 0 4px 0 0 #c2410c, 0 4px 10px rgba(0, 0, 0, 0.15);
+  transform: translateY(0);
+  transition: all 0.15s ease;
+}
+.shadow-3d-orange:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #c2410c, 0 10px 15px rgba(0, 0, 0, 0.2);
+}
+.shadow-3d-orange:active {
+  transform: translateY(4px);
+  box-shadow: 0 0px 0 0 #c2410c, 0 0px 0px rgba(0, 0, 0, 0);
+}
+
+.shadow-3d-indigo {
+  box-shadow: 0 4px 0 0 #4338ca, 0 4px 10px rgba(0, 0, 0, 0.15);
+  transform: translateY(0);
+  transition: all 0.15s ease;
+}
+.shadow-3d-indigo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #4338ca, 0 10px 15px rgba(0, 0, 0, 0.2);
+}
+.shadow-3d-indigo:active {
+  transform: translateY(4px);
+  box-shadow: 0 0px 0 0 #4338ca, 0 0px 0px rgba(0, 0, 0, 0);
+}
+
+.shadow-3d-gray {
+  box-shadow: 0 4px 0 0 #d1d5db, 0 4px 10px rgba(0, 0, 0, 0.05);
+  transform: translateY(0);
+  transition: all 0.15s ease;
+}
+.dark .shadow-3d-gray {
+  box-shadow: 0 4px 0 0 #374151, 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.shadow-3d-gray:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #d1d5db, 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+.dark .shadow-3d-gray:hover {
+  box-shadow: 0 6px 0 0 #374151, 0 10px 15px rgba(0, 0, 0, 0.4);
+}
+.shadow-3d-gray:active {
+  transform: translateY(4px);
+  box-shadow: 0 0px 0 0 #d1d5db, 0 0px 0px rgba(0, 0, 0, 0);
+}
+.dark .shadow-3d-gray:active {
+  box-shadow: 0 0px 0 0 #374151, 0 0px 0px rgba(0, 0, 0, 0);
+}
+
+/* ── 3D Cart Drawer Shadow ── */
+.cart-3d {
+  box-shadow: -15px 0 40px -10px rgba(0, 0, 0, 0.4), -5px 0 15px rgba(0, 0, 0, 0.1);
+  border-left: 5px solid #f97316; /* Orange brand color highlight */
+}
+.dark .cart-3d {
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.8), -5px 0 25px rgba(0, 0, 0, 0.4);
+  border-left: 5px solid #ea580c;
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

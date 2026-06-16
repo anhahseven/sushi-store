@@ -48,7 +48,7 @@ export const CartDrawer: React.FC = () => {
       />
 
       {/* Drawer */}
-      <div className="fixed top-0 right-0 h-full w-full md:w-[450px] bg-white dark:bg-gray-900 z-[70] transition-transform duration-300 shadow-2xl flex flex-col font-sans">
+      <div className="fixed top-0 right-0 h-full w-full md:w-[450px] bg-white dark:bg-gray-900 z-[70] transition-transform duration-300 cart-3d flex flex-col font-sans">
         {/* Header */}
         <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Your Order</h2>
@@ -158,7 +158,7 @@ export const CartDrawer: React.FC = () => {
               <button
                 disabled={items.length === 0 || submitting}
                 onClick={handleCreateStaffOrder}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold py-4 rounded-full flex items-center justify-center shadow-lg transition-all"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold py-4 rounded-full flex items-center justify-center shadow-3d-indigo transition-all"
               >
                 <i className="fa-solid fa-paper-plane mr-2"></i>{" "}
                 {submitting ? "Processing..." : "Confirm Order"}
@@ -168,7 +168,7 @@ export const CartDrawer: React.FC = () => {
             <Link
               to="/checkout"
               onClick={toggleCart}
-              className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-full flex items-center justify-center shadow-lg transition-all ${
+              className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-full flex items-center justify-center shadow-3d-orange transition-all ${
                 items.length === 0 ? "opacity-50 pointer-events-none" : ""
               }`}
             >
