@@ -129,7 +129,7 @@ export default function AnimatedCardStack() {
     })
 
     return () => {
-      trigger.destroy()
+      trigger.kill()
     }
   }, [])
 
