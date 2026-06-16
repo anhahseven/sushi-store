@@ -194,11 +194,11 @@ export default function AnimatedCardStack() {
   return (
     <div 
       ref={containerRef} 
-      className="-mt-16 lg:-mt-20 w-full h-screen overflow-hidden bg-white dark:bg-[#0a0a0a] flex items-center justify-center"
+      className="-mt-16 lg:-mt-20 w-full h-screen overflow-hidden bg-[#f9fafb] dark:bg-[#0a0a0a] flex items-center justify-center"
     >
       {/* Inner Scalable Card Wrapper */}
       <div
-        className={`w-full h-full bg-white dark:bg-[#0a0a0a] flex items-center relative overflow-hidden transition-all duration-300 border ${
+        className={`w-full h-full bg-white dark:bg-gray-950 flex items-center relative overflow-hidden transition-all duration-300 border ${
           heroStyles.scale < 1 ? "border-gray-200/80 dark:border-gray-800/80" : "border-transparent"
         }`}
         style={{

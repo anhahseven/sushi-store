@@ -156,9 +156,9 @@ export function Home() {
       {/* Categories Section */}
 
       {/* ─── 2. CATEGORIES SECTION (EJS our_category.ejs) ─── */}
-      <section id="our-menu" className="py-12 bg-white dark:bg-gray-900 flex justify-center">
+      <section id="our-menu" className="py-12 bg-[#f9fafb] dark:bg-[#0a0a0a] flex justify-center">
         <div 
-          className="w-[92%] bg-white dark:bg-[#0a0a0a] p-6 sm:p-10 lg:p-12 rounded-[24px] border border-gray-200/80 dark:border-gray-800/80 flex flex-col items-center transition-all duration-300"
+          className="w-[92%] bg-white dark:bg-gray-950 p-6 sm:p-10 lg:p-12 rounded-[24px] border border-gray-200/80 dark:border-gray-800/80 flex flex-col items-center transition-all duration-300"
           style={{
             boxShadow: "0 40px 100px -15px rgba(0, 0, 0, 0.12), 0 20px 40px -20px rgba(0, 0, 0, 0.08), 0 2px 10px rgba(0, 0, 0, 0.02)"
           }}
@@ -213,7 +213,7 @@ export function Home() {
       </section>
 
       {/* ─── 3. BEST SELLERS SECTION (EJS mostsale.ejs) ─── */}
-      <section className="py-8 lg:py-16 bg-white dark:bg-gray-900">
+      <section className="py-8 lg:py-16 bg-[#f9fafb] dark:bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-end mb-6 lg:mb-8 scroll-hidden">
             <h2 className="text-2xl lg:text-3xl font-extrabold text-gray-900 dark:text-white">🔥 Most Sales</h2>
