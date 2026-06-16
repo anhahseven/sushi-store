@@ -187,9 +187,11 @@ export function Home() {
                   </div>
 
                   <div className="relative h-full p-4 lg:p-6 flex flex-col items-center justify-center text-center z-10">
-                    <h3 className="font-bold text-white text-lg lg:text-3xl mb-0 lg:mb-2 drop-shadow-md group-hover:-translate-y-2 transition-transform duration-300">
-                      {cat.name}
-                    </h3>
+                    <div className="bg-white/95 dark:bg-gray-900/95 px-5 py-2.5 rounded-2xl border-b-4 border-orange-500 shadow-xl shadow-black/30 transform transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-1 mb-2">
+                      <h3 className="font-extrabold text-gray-900 dark:text-white text-sm lg:text-xl tracking-wide">
+                        {cat.name}
+                      </h3>
+                    </div>
 
                     <div className="hidden lg:block max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-500 ease-in-out overflow-hidden w-full px-4">
                       <p className="text-gray-200 text-sm mb-4 leading-relaxed">{cat.desc}</p>
