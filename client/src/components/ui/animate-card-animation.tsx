@@ -194,7 +194,7 @@ export default function AnimatedCardStack() {
   return (
     <div 
       ref={containerRef} 
-      className="-mt-16 lg:-mt-20 w-full h-screen overflow-hidden bg-gray-900 dark:bg-black flex items-center justify-center"
+      className="-mt-16 lg:-mt-20 w-full h-screen overflow-hidden bg-white dark:bg-[#0a0a0a] flex items-center justify-center"
     >
       {/* Inner Scalable Card Wrapper */}
       <div

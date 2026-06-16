@@ -123,7 +123,7 @@ export function Home() {
     }
   };
 
-  const bestSellers = products.filter(p => p.is_best_seller === true).slice(0, 4);
+  const bestSellers = products.filter(p => p.is_best_seller === true).slice(0, 8);
 
   return (
     <div className="bg-white dark:bg-gray-900 transition-colors duration-300">
@@ -174,7 +174,7 @@ export function Home() {
                 <Link
                   key={cat.name}
                   to={`/menu#${menuId}`}
-                  className="group relative h-40 lg:h-80 rounded-2xl lg:rounded-[2rem] overflow-hidden bg-gray-800 no-underline shadow-lg hover:shadow-2xl transition-all duration-300 scroll-hidden"
+                  className="group relative h-40 lg:h-80 rounded-2xl lg:rounded-[2rem] overflow-hidden bg-gray-800 no-underline shadow-md lg:shadow-xl hover:shadow-2xl border border-gray-150 dark:border-gray-800 transition-all duration-300 scroll-hidden"
                   style={{ transitionDelay: `${(index + 1) * 0.1}s` }}
                 >
                   <div className="absolute inset-0 w-full h-full">
@@ -187,13 +187,6 @@ export function Home() {
                   </div>
 
                   <div className="relative h-full p-4 lg:p-6 flex flex-col items-center justify-center text-center z-10">
-                    <div className="mb-2 lg:mb-4 transform transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-2">
-                      <span
-                        className="text-3xl lg:text-6xl drop-shadow-md text-white"
-                        dangerouslySetInnerHTML={{ __html: cat.icon }}
-                      ></span>
-                    </div>
-
                     <h3 className="font-bold text-white text-lg lg:text-3xl mb-0 lg:mb-2 drop-shadow-md group-hover:-translate-y-2 transition-transform duration-300">
                       {cat.name}
                     </h3>
@@ -224,7 +217,7 @@ export function Home() {
 
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-8">
             {loading ? (
-              <CardSkeleton count={4} heightClass="h-64 lg:h-[450px]" />
+              <CardSkeleton count={8} heightClass="h-64 lg:h-[450px]" />
             ) : bestSellers.length > 0 ? (
               bestSellers.map((product, index) => (
                 <div
