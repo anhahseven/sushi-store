@@ -128,6 +128,28 @@ app.use("/", publicController);
 app.use("/", adminController);
 app.use("/", managerController);
 
+app.get("/api/debug-paths", (req, res) => {
+  try {
+    const rootFiles = fs.readdirSync(__dirname);
+    let clientFiles = [];
+    if (fs.existsSync(path.join(__dirname, "client"))) {
+      clientFiles = fs.readdirSync(path.join(__dirname, "client"));
+    }
+    let distFiles = [];
+    if (fs.existsSync(path.join(__dirname, "client/dist"))) {
+      distFiles = fs.readdirSync(path.join(__dirname, "client/dist"));
+    }
+    res.json({
+      __dirname,
+      rootFiles,
+      clientFiles,
+      distFiles
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Fallback route for SPA page navigation (MUST BE LAST)
 app.get("/{*splat}", (req, res, next) => {
   if (req.path.startsWith("/api") || req.path.startsWith("/auth") || req.path.includes(".")) {
