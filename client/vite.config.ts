@@ -9,6 +9,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    "import.meta.env.VITE_API_URL": JSON.stringify(
+      process.env.VITE_API_URL
+        ? (process.env.VITE_API_URL.startsWith("http") ? process.env.VITE_API_URL : `https://${process.env.VITE_API_URL}`)
+        : ""
+    ),
+  },
   server: {
     port: 5173,
     proxy: {
