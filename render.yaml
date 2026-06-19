@@ -47,7 +47,7 @@ services:
         fromService:
           type: web
           name: sushi-backend
-          property: host
+          property: url
     routes:
       # Rewrite all requests to index.html for React Router SPA support
       - type: rewrite

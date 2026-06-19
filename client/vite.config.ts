@@ -12,7 +12,16 @@ export default defineConfig({
   define: {
     "import.meta.env.VITE_API_URL": JSON.stringify(
       process.env.VITE_API_URL
-        ? (process.env.VITE_API_URL.startsWith("http") ? process.env.VITE_API_URL : `https://${process.env.VITE_API_URL}`)
+        ? (() => {
+            let url = process.env.VITE_API_URL.trim();
+            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+              url = `https://${url}`;
+            }
+            if (!url.includes(".") && !url.includes("localhost") && !url.includes("127.0.0.1")) {
+              url = `${url}.onrender.com`;
+            }
+            return url;
+          })()
         : ""
     ),
   },
