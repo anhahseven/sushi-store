@@ -17,6 +17,7 @@
   "scripts": {
     "start": "node index.js",
     "db:import": "node scripts/importDb.js",
+    "build": "cd client && npm install && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

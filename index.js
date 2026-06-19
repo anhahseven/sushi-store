@@ -54,7 +54,24 @@ app.use(
   })
 );
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://sushi-frontend.onrender.com",
+  "https://sushi-store.onrender.com"
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith(".onrender.com")) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 app.use(express.static("public"));
 app.use(express.static(path.join(__dirname, "client/dist")));
 app.use(express.urlencoded({ extended: true }));
@@ -100,13 +117,7 @@ app.post("/payment/confirm/:id", checkAuthenticated, async (req, res) => {
   }
 });
 
-// Fallback route for SPA page navigation
-app.get("/{*splat}", (req, res, next) => {
-  if (req.path.startsWith("/api") || req.path.startsWith("/auth") || req.path.includes(".")) {
-    return next();
-  }
-  res.sendFile(path.join(__dirname, "client/dist/index.html"));
-});
+// Fallback route for SPA page navigation moved to the bottom
 
 // Register Routers
 
@@ -114,6 +125,14 @@ app.use("/", authController);
 app.use("/", publicController);
 app.use("/", adminController);
 app.use("/", managerController);
+
+// Fallback route for SPA page navigation (MUST BE LAST)
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api") || req.path.startsWith("/auth") || req.path.includes(".")) {
+    return next();
+  }
+  res.sendFile(path.join(__dirname, "client/dist/index.html"));
+});
 
 // Start Server
 
