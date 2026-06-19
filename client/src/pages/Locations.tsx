@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { CardSkeleton } from "../components/ui/Skeleton";
+import { CardSkeleton } from "../components/ui/skeleton";
 
 interface LocationItem {
   id: number;

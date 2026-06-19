@@ -34,7 +34,7 @@ const chartRows: ReplyRow[] = [
 ];
 
 const firstMinutes = chartRows[0]?.minutes ?? 0;
-const lastMinutes = chartRows.at(-1)?.minutes ?? firstMinutes;
+const lastMinutes = chartRows[chartRows.length - 1]?.minutes ?? firstMinutes;
 
 /** Positive when median first reply faster Mon → Sun. */
 const replyImprovementPct =

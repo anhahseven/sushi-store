@@ -24,7 +24,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { StatusIndicator } from "@/components/indicator";
-import { EllipsisIcon, SendIcon, ListChecksIcon } from "lucide-react";
+import { MoreHorizontalIcon, SendIcon, ListChecksIcon } from "lucide-react";
 
 type Teammate = {
 	id: string;
@@ -136,7 +136,7 @@ export function TeamOnDuty({
 										size="icon-xs"
 										variant="ghost"
 									>
-										<EllipsisIcon
+										<MoreHorizontalIcon
 										/>
 									</Button>
 								</DropdownMenuTrigger>

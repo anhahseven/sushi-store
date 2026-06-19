@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useCart } from "../context/CartContext";
 import Swal from "sweetalert2";
-import { CardSkeleton } from "../components/ui/Skeleton";
+import { CardSkeleton } from "../components/ui/skeleton";
 import AnimatedCardStack from "../components/ui/animate-card-animation";
 
 gsap.registerPlugin(ScrollTrigger);

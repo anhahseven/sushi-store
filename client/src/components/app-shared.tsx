@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { LayoutGridIcon, ListChecksIcon, BarChart3Icon, MessageSquareTextIcon, UsersIcon, PlugIcon, SettingsIcon, HelpCircleIcon, ActivityIcon } from "lucide-react";
+import { LayoutGridIcon, ListChecksIcon, BarChart3Icon, MessageSquareIcon, UsersIcon, PlugIcon, SettingsIcon, HelpCircleIcon, ActivityIcon } from "lucide-react";
 
 export type SidebarNavItem = {
 	title: string;
@@ -55,7 +55,7 @@ export const navGroups: SidebarNavGroup[] = [
 			{
 				title: "Conversations",
 				icon: (
-					<MessageSquareTextIcon
+					<MessageSquareIcon
 					/>
 				),
 				subItems: [

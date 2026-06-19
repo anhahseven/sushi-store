@@ -45,7 +45,7 @@ export function ConversationVolumeChart({
 	const growthPctNum = useMemo(() => {
 		const first = chartRows[0];
 		if (!first) return 0;
-		const last = chartRows.at(-1);
+		const last = chartRows[chartRows.length - 1];
 		if (!last) return 0;
 		const a = first.conversations;
 		const b = last.conversations;

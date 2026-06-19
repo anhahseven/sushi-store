@@ -3,7 +3,7 @@ import axios from "axios";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import { CardSkeleton, OfferBannerSkeleton } from "../components/ui/Skeleton";
+import { CardSkeleton, OfferBannerSkeleton } from "../components/ui/skeleton";
 
 interface DiscountProduct {
   id: string | number;
