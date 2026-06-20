@@ -6,6 +6,7 @@ import { CartProvider } from "./context/CartContext";
 import Layout from "./components/Layout";
 import CustomerLayout from "./components/CustomerLayout";
 import AdminLayout from "./components/AdminLayout";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Guest / Customer Pages
 import { Home } from "./pages/Home";
@@ -84,6 +85,7 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* Main Outer App Frame */}
             <Route element={<Layout />}>
