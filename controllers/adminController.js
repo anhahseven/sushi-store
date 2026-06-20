@@ -255,7 +255,7 @@ app.get("/api/admin/reports", checkAuthenticated, checkRole(["manager", "admin",
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get("/api/admin/orders", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
+app.get("/api/admin/orders", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "cashier"]), async (req, res) => {
   try {
     let query = `SELECT o.*, u.email, l.address AS location_address FROM orders o LEFT JOIN users u ON o.user_id = u.id LEFT JOIN locations l ON o.pickup_location = l.name WHERE 1=1`;
     let params = [];
@@ -279,7 +279,7 @@ app.get("/api/admin/orders", checkAuthenticated, checkRole(["manager", "admin", 
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get("/api/admin/orders/edit/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
+app.get("/api/admin/orders/edit/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "cashier"]), async (req, res) => {
   try {
     const orderRes = await pool.query(`SELECT o.*, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = $1`, [req.params.id]);
     if (orderRes.rows.length === 0) return res.status(404).json({ error: "Order not found" });
@@ -411,14 +411,14 @@ app.get("/api/admin/category", checkAuthenticated, checkRole(["manager", "admin"
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.patch("/api/admin/orders/:id/status", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
+app.patch("/api/admin/orders/:id/status", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "cashier"]), async (req, res) => {
   try {
     await pool.query("UPDATE orders SET status = $1 WHERE id = $2", [req.body.status, req.params.id]);
     res.json({ success: true, message: `Order status updated to ${req.body.status}` });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post("/api/admin/orders/handle-request/:id", checkAuthenticated, checkRole(["admin", "manager", "store_manager", "staff", "cashier"]), async (req, res) => {
+app.post("/api/admin/orders/handle-request/:id", checkAuthenticated, checkRole(["admin", "manager", "store_manager", "cashier"]), async (req, res) => {
   const { action } = req.body;
   let newStatus = "";
   if (action === "approve_cancel") newStatus = "Cancelled";
@@ -431,7 +431,7 @@ app.post("/api/admin/orders/handle-request/:id", checkAuthenticated, checkRole([
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.delete("/api/admin/orders/delete/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
+app.delete("/api/admin/orders/delete/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "cashier"]), async (req, res) => {
   try {
     await pool.query("DELETE FROM order_items WHERE order_id = $1", [req.params.id]);
     await pool.query("DELETE FROM orders WHERE id = $1", [req.params.id]);
@@ -439,14 +439,14 @@ app.delete("/api/admin/orders/delete/:id", checkAuthenticated, checkRole(["manag
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.put("/api/admin/orders/update/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
+app.put("/api/admin/orders/update/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "cashier"]), async (req, res) => {
   try {
     await pool.query("UPDATE orders SET status=$1, payment_method=$2, pickup_location=$3, table_number=$4 WHERE id=$5", [req.body.status, req.body.payment_method, req.body.pickup_location, req.body.table_number, req.params.id]);
     res.json({ success: true, message: "Order updated successfully" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.delete("/api/admin/orders/items/delete/:itemId", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
+app.delete("/api/admin/orders/items/delete/:itemId", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "cashier"]), async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -460,7 +460,7 @@ app.delete("/api/admin/orders/items/delete/:itemId", checkAuthenticated, checkRo
   } catch (err) { await client.query("ROLLBACK"); res.status(500).json({ error: err.message }); } finally { client.release(); }
 });
 
-app.patch("/api/admin/orders/items/update/:itemId", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
+app.patch("/api/admin/orders/items/update/:itemId", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "cashier"]), async (req, res) => {
   const client = await pool.connect();
   try {
     const newQuantity = parseInt(req.body.quantity);

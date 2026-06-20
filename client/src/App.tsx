@@ -80,6 +80,9 @@ function App() {
   const adminManagerRoles = ["manager", "admin", "store_manager"];
   const adminOnly = ["admin"];
   const managerOnly = ["store_manager", "admin", "manager"];
+  
+  const posRoles = ["manager", "admin", "store_manager", "staff"];
+  const orderRoles = ["manager", "admin", "store_manager", "cashier"];
 
   return (
     <AuthProvider>
@@ -142,7 +145,7 @@ function App() {
               <Route
                 path="/staff/menu"
                 element={
-                  <ProtectedRoute allowedRoles={staffRoles}>
+                  <ProtectedRoute allowedRoles={posRoles}>
                     <StaffMenu />
                   </ProtectedRoute>
                 }
@@ -173,7 +176,7 @@ function App() {
                 <Route
                   path="/admin/orders"
                   element={
-                    <ProtectedRoute allowedRoles={staffRoles}>
+                    <ProtectedRoute allowedRoles={orderRoles}>
                       <AdminOrders />
                     </ProtectedRoute>
                   }
@@ -181,7 +184,7 @@ function App() {
                 <Route
                   path="/admin/orders/edit/:id"
                   element={
-                    <ProtectedRoute allowedRoles={staffRoles}>
+                    <ProtectedRoute allowedRoles={orderRoles}>
                       <AdminEditOrder />
                     </ProtectedRoute>
                   }
@@ -207,7 +210,7 @@ function App() {
                 <Route
                   path="/admin/stock/request/:id"
                   element={
-                    <ProtectedRoute allowedRoles={staffRoles}>
+                    <ProtectedRoute allowedRoles={orderRoles}>
                       <AdminViewStockRequest />
                     </ProtectedRoute>
                   }

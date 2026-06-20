@@ -77,9 +77,9 @@ function AdminLayoutContent() {
   };
 
   const sidebarLinks: SidebarLink[] = [
-    { path: "/admin/dashboard", label: "Dashboard", icon: LayoutGrid, roles: ["manager", "admin", "store_manager", "cashier"] },
-    { path: "/staff/menu", label: "Menu Staff", icon: Utensils, roles: ["manager", "admin", "store_manager", "cashier"] },
-    { path: "/admin/orders", label: "Orders", icon: ShoppingCart },
+    { path: "/admin/dashboard", label: "Dashboard", icon: LayoutGrid, roles: ["manager", "admin", "store_manager"] },
+    { path: "/staff/menu", label: "Menu Staff", icon: Utensils, roles: ["manager", "admin", "store_manager", "staff"] },
+    { path: "/admin/orders", label: "Orders", icon: ShoppingCart, roles: ["manager", "admin", "store_manager", "cashier"] },
     { path: "/admin/inventory", label: "Inventory", icon: Package, roles: ["manager", "admin"] },
     { path: "/admin/category", label: "Category", icon: Tags, roles: ["manager", "admin"] },
     { path: "/admin/stock", label: "Stock Requests", icon: Boxes, roles: ["admin", "manager", "store_manager"] },
