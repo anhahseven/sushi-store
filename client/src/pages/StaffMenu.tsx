@@ -291,11 +291,15 @@ export const StaffMenu: React.FC = () => {
             )}
             <button
               onClick={() => setShowTicket(!showTicket)}
-              className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white text-[11px] font-extrabold px-3 py-2 rounded-xl border border-orange-600/30 transition-all shadow-md shadow-orange-500/20"
+              className="relative w-10 h-10 flex items-center justify-center bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-xl border border-orange-600/30 transition-all shadow-md shadow-orange-500/20"
               title={showTicket ? "Hide Ticket" : "Show Ticket"}
             >
-              <i className={`fa-solid ${showTicket ? "fa-eye-slash" : "fa-cart-shopping"} text-xs`}></i>
-              <span>{showTicket ? "Hide Ticket" : `Show Ticket (${cartCount})`}</span>
+              <i className={`fa-solid ${showTicket ? "fa-eye-slash" : "fa-cart-shopping"} text-base`}></i>
+              {!showTicket && cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-slate-900 shadow animate-fade-in">
+                  {cartCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
