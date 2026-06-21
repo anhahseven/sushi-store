@@ -21,7 +21,7 @@ interface Category {
 
 export const StaffMenu: React.FC = () => {
   const { items, addToCart, updateQty, deleteCartItem, cartCount, cartTotal } = useCart();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -184,6 +184,58 @@ export const StaffMenu: React.FC = () => {
     }
   };
 
+  const handleLogout = async () => {
+    const isDark = document.documentElement.classList.contains("dark");
+    const { value: password } = await Swal.fire({
+      title: "Confirm Password",
+      text: "Please enter your password to sign out of the staff account:",
+      input: "password",
+      inputPlaceholder: "Enter your password",
+      inputAttributes: {
+        autocapitalize: "off",
+        autocorrect: "off"
+      },
+      showCancelButton: true,
+      confirmButtonText: "Sign Out",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      background: isDark ? "#1f2937" : "#ffffff",
+      color: isDark ? "#ffffff" : "#1f2937"
+    });
+
+    if (password === undefined) return; // User cancelled
+
+    if (!password) {
+      Swal.fire({
+        icon: "error",
+        title: "Password Required",
+        text: "You must enter a password to sign out.",
+        confirmButtonColor: "#ef4444",
+        background: isDark ? "#1f2937" : "#ffffff",
+        color: isDark ? "#ffffff" : "#1f2937"
+      });
+      return;
+    }
+
+    try {
+      const res = await axios.post(`${API_BASE}/api/auth/verify-password`, { password });
+      if (res.data.success) {
+        await logout();
+        navigate("/login");
+      }
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Sign Out Failed",
+        text: err.response?.data?.error || "Incorrect password. Please try again.",
+        confirmButtonColor: "#ef4444",
+        background: isDark ? "#1f2937" : "#ffffff",
+        color: isDark ? "#ffffff" : "#1f2937"
+      });
+    }
+  };
+
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
@@ -220,12 +272,22 @@ export const StaffMenu: React.FC = () => {
           </div>
           <div className="flex items-center gap-4 self-start sm:self-auto flex-wrap">
             {user && (
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="text-xs text-gray-300">
-                  Operator: <span className="font-bold text-orange-400 bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-full">{user.email.split("@")[0]}</span>
-                </span>
-              </div>
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="text-xs text-gray-300">
+                    Operator: <span className="font-bold text-orange-400 bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-full">{user.email.split("@")[0]}</span>
+                  </span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-[11px] font-extrabold px-3 py-2 rounded-xl border border-red-700/30 transition-all shadow-md shadow-red-500/20"
+                  title="Sign Out"
+                >
+                  <i className="fa-solid fa-right-from-bracket text-xs"></i>
+                  <span>Sign Out</span>
+                </button>
+              </>
             )}
             <button
               onClick={() => setShowTicket(!showTicket)}

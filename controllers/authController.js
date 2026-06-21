@@ -124,4 +124,28 @@ router.delete("/profile/delete", checkAuthenticated, async (req, res) => {
   }
 });
 
+router.post("/api/auth/verify-password", checkAuthenticated, async (req, res) => {
+  const { password } = req.body;
+  if (!password) {
+    return res.status(400).json({ error: "Password is required" });
+  }
+  try {
+    const userId = req.user.id;
+    const userResult = await pool.query("SELECT password FROM users WHERE id = $1", [userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const hash = userResult.rows[0].password;
+    const match = await bcrypt.compare(password, hash);
+    if (match) {
+      return res.json({ success: true });
+    } else {
+      return res.status(401).json({ error: "Incorrect password" });
+    }
+  } catch (err) {
+    console.error("Password verification error:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 export default router;
