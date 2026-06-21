@@ -75,7 +75,6 @@ app.use(
   })
 );
 app.use(express.static("public"));
-app.use(express.static(path.join(__dirname, "client/dist")));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride("_method"));
@@ -150,17 +149,9 @@ app.get("/api/debug-paths", (req, res) => {
   }
 });
 
-// Fallback route for SPA page navigation (MUST BE LAST)
-app.get("/{*splat}", (req, res, next) => {
-  if (req.path.startsWith("/api") || req.path.startsWith("/auth") || req.path.includes(".")) {
-    return next();
-  }
-  const indexPath = path.join(__dirname, "client/dist/index.html");
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.send("Sushi Store API is running.");
-  }
+// Root route for API status
+app.get("/", (req, res) => {
+  res.send("Sushi Store API is running.");
 });
 
 // Start Server
