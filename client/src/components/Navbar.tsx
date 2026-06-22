@@ -7,7 +7,7 @@ import axios from "axios";
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
-  const { toggleCart, cartCount } = useCart();
+  const { toggleCart, cartCount, toggleStaffTicket } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -276,7 +276,7 @@ export const Navbar: React.FC = () => {
 
             {/* Shopping Cart Drawer Trigger */}
             <button
-              onClick={toggleCart}
+              onClick={currentPath === "/staff/menu" ? toggleStaffTicket : toggleCart}
               className="relative w-10 h-10 flex items-center justify-center text-gray-700 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300 transition"
             >
               <i className="fa-solid fa-shopping-bag text-xl"></i>

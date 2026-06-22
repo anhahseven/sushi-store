@@ -21,7 +21,7 @@ interface Category {
 }
 
 export const StaffMenu: React.FC = () => {
-  const { items, addToCart, updateQty, deleteCartItem, cartCount, cartTotal } = useCart();
+  const { items, addToCart, updateQty, deleteCartItem, cartCount, cartTotal, showStaffTicket, toggleStaffTicket } = useCart();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -32,7 +32,7 @@ export const StaffMenu: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [tableNumber, setTableNumber] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
-  const [showTicket, setShowTicket] = useState<boolean>(true);
+
 
   const observerTarget = useRef<HTMLDivElement>(null);
   const [visibleLimit, setVisibleLimit] = useState<number>(10);
@@ -300,18 +300,7 @@ export const StaffMenu: React.FC = () => {
                 )}
               </>
             )}
-            <button
-              onClick={() => setShowTicket(!showTicket)}
-              className="relative w-10 h-10 flex items-center justify-center bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-xl border border-orange-600/30 transition-all shadow-md shadow-orange-500/20 cursor-pointer"
-              title={showTicket ? "Hide Ticket" : "Show Ticket"}
-            >
-              <i className={`fa-solid ${showTicket ? "fa-eye-slash" : "fa-cart-shopping"} text-base`}></i>
-              {!showTicket && cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-slate-900 dark:border-gray-950 shadow animate-fade-in">
-                  {cartCount}
-                </span>
-              )}
-            </button>
+
           </div>
         </div>
 
@@ -437,21 +426,21 @@ export const StaffMenu: React.FC = () => {
 
       {/* RIGHT COLUMN: Active Ticket / Bill Calculator */}
       <aside className={`transition-all duration-300 flex flex-col shrink-0 z-10 shadow-2xl bg-white dark:bg-gray-900 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-800 text-gray-950 dark:text-white overflow-hidden ${
-        showTicket 
+        showStaffTicket 
           ? "w-full lg:w-[380px] h-[400px] lg:h-full pt-6 lg:pt-28 pb-6 px-6 opacity-100" 
           : "w-0 h-0 lg:w-0 lg:h-full opacity-0 pointer-events-none p-0 border-transparent"
       }`}>
         <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-4 mb-4">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowTicket(false)}
+              onClick={toggleStaffTicket}
               className="lg:hidden text-gray-400 hover:text-gray-600 dark:hover:text-white mr-1 transition-colors flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 dark:hover:bg-white/5 border-0 cursor-pointer"
               title="Hide Ticket"
             >
               <i className="fa-solid fa-chevron-down text-sm"></i>
             </button>
             <button
-              onClick={() => setShowTicket(false)}
+              onClick={toggleStaffTicket}
               className="hidden lg:flex text-gray-400 hover:text-gray-600 dark:hover:text-white mr-1 transition-colors items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 dark:hover:bg-white/5 border-0 cursor-pointer"
               title="Hide Ticket"
             >

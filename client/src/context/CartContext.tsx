@@ -22,6 +22,8 @@ interface CartContextType {
   deleteCartItem: (cartId: number) => Promise<void>;
   cartCount: number;
   cartTotal: number;
+  showStaffTicket: boolean;
+  toggleStaffTicket: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -33,6 +35,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [showStaffTicket, setShowStaffTicket] = useState<boolean>(true);
+
+  const toggleStaffTicket = () => {
+    setShowStaffTicket(!showStaffTicket);
+  };
 
   const fetchCart = async () => {
     if (!isAuthenticated) {
@@ -110,6 +117,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         deleteCartItem,
         cartCount,
         cartTotal,
+        showStaffTicket,
+        toggleStaffTicket,
       }}
     >
       {children}
