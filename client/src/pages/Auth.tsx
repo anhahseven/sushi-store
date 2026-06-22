@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import InkReveal from "../components/ui/ink-reveal";
 import { Mail, Lock, ArrowLeft } from "lucide-react";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 export const Auth: React.FC = () => {
   const { login, checkAuth, user, isAuthenticated } = useAuth();
@@ -23,8 +24,6 @@ export const Auth: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [errorMsg, setErrorMsg] = useState<string>("");
-  const [successMsg, setSuccessMsg] = useState<string>("");
 
   const API_BASE = import.meta.env.VITE_API_URL || "";
 
@@ -33,23 +32,33 @@ export const Auth: React.FC = () => {
   const handleAuth = async (e: React.FormEvent, endpoint: string) => {
     e.preventDefault();
     setLoading(true);
-    setErrorMsg("");
-    setSuccessMsg("");
 
     try {
       if (endpoint === "/login") {
         const res = await login(email, password);
         if (res.success) {
-          setSuccessMsg("Login Successful!");
+          Swal.fire({
+            icon: "success",
+            title: "Login Successful",
+            text: "Welcome back to Murakami Sushi!",
+            timer: 1500,
+            showConfirmButton: false,
+            confirmButtonColor: "#f97316",
+          });
           setTimeout(() => {
             const role = res.role?.trim().toLowerCase();
             if (role === "staff") navigate("/staff/menu");
             else if (role === "cashier") navigate("/admin/orders");
             else if (["admin", "manager", "store_manager"].includes(role || "")) navigate("/admin/dashboard");
             else navigate("/");
-          }, 1000);
+          }, 1500);
         } else {
-          setErrorMsg(res.error || "Login failed");
+          Swal.fire({
+            icon: "error",
+            title: "Login Failed",
+            text: res.error || "Invalid email or password. Please try again.",
+            confirmButtonColor: "#ef4444",
+          });
         }
       } else {
         // Register
@@ -57,15 +66,27 @@ export const Auth: React.FC = () => {
           username: email,
           password,
         });
-        setSuccessMsg(res.data.message || "Registration Successful!");
+        Swal.fire({
+          icon: "success",
+          title: "Registration Successful",
+          text: "Welcome to Murakami Sushi!",
+          timer: 1500,
+          showConfirmButton: false,
+          confirmButtonColor: "#f97316",
+        });
         await checkAuth();
         setTimeout(() => {
           navigate("/");
-        }, 1000);
+        }, 1500);
       }
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.response?.data?.error || "Connection error");
+      Swal.fire({
+        icon: "error",
+        title: "Authentication Error",
+        text: err.response?.data?.error || "Connection error. Please try again.",
+        confirmButtonColor: "#ef4444",
+      });
     } finally {
       setLoading(false);
     }
@@ -91,31 +112,7 @@ export const Auth: React.FC = () => {
         <ArrowLeft className="w-4 h-4 text-orange-500" /> Back to Home
       </Link>
 
-      {/* Notification Toast */}
-      {(errorMsg || successMsg) && (
-        <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none">
-          <div
-            className={`${
-              errorMsg ? "bg-red-500" : "bg-green-500"
-            } text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border-2 border-white/20`}
-            style={{ animation: "slideIn 0.5s forwards" }}
-          >
-            <div className="text-2xl">
-              <i
-                className={`fa-solid ${
-                  errorMsg ? "fa-circle-exclamation" : "fa-circle-check"
-                }`}
-              ></i>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-sm uppercase tracking-wide opacity-80">
-                {errorMsg ? "Error" : "Success"}
-              </span>
-              <span className="font-bold text-base">{errorMsg || successMsg}</span>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Notification Toast removed in favor of Swal */}
 
       {/* Auth Container */}
       <div
