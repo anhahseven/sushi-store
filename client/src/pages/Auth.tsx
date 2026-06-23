@@ -24,6 +24,8 @@ export const Auth: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [successMsg, setSuccessMsg] = useState<string>("");
 
   const API_BASE = import.meta.env.VITE_API_URL || "";
 
@@ -32,19 +34,14 @@ export const Auth: React.FC = () => {
   const handleAuth = async (e: React.FormEvent, endpoint: string) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
 
     try {
       if (endpoint === "/login") {
         const res = await login(email, password);
         if (res.success) {
-          Swal.fire({
-            icon: "success",
-            title: "Login Successful",
-            text: "Welcome back to Murakami Sushi!",
-            timer: 1500,
-            showConfirmButton: false,
-            confirmButtonColor: "#f97316",
-          });
+          setSuccessMsg("Login Successful!");
           setTimeout(() => {
             const role = res.role?.trim().toLowerCase();
             if (role === "staff") navigate("/staff/menu");
@@ -53,12 +50,7 @@ export const Auth: React.FC = () => {
             else navigate("/");
           }, 1500);
         } else {
-          Swal.fire({
-            icon: "error",
-            title: "Login Failed",
-            text: res.error || "Invalid email or password. Please try again.",
-            confirmButtonColor: "#ef4444",
-          });
+          setErrorMsg(res.error || "Login failed. Please check your credentials.");
         }
       } else {
         // Register
@@ -66,14 +58,7 @@ export const Auth: React.FC = () => {
           username: email,
           password,
         });
-        Swal.fire({
-          icon: "success",
-          title: "Registration Successful",
-          text: "Welcome to Murakami Sushi!",
-          timer: 1500,
-          showConfirmButton: false,
-          confirmButtonColor: "#f97316",
-        });
+        setSuccessMsg(res.data.message || "Registration Successful!");
         await checkAuth();
         setTimeout(() => {
           navigate("/");
@@ -81,12 +66,7 @@ export const Auth: React.FC = () => {
       }
     } catch (err: any) {
       console.error(err);
-      Swal.fire({
-        icon: "error",
-        title: "Authentication Error",
-        text: err.response?.data?.error || "Connection error. Please try again.",
-        confirmButtonColor: "#ef4444",
-      });
+      setErrorMsg(err.response?.data?.error || "Connection error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -112,7 +92,31 @@ export const Auth: React.FC = () => {
         <ArrowLeft className="w-4 h-4 text-orange-500" /> Back to Home
       </Link>
 
-      {/* Notification Toast removed in favor of Swal */}
+      {/* Notification Toast */}
+      {(errorMsg || successMsg) && (
+        <div className="fixed top-5 left-5 z-[9999] flex flex-col gap-3 pointer-events-none">
+          <div
+            className={`${
+              errorMsg ? "bg-red-500" : "bg-green-500"
+            } text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border-2 border-white/20`}
+            style={{ animation: "slideInLeft 0.5s forwards" }}
+          >
+            <div className="text-2xl">
+              <i
+                className={`fa-solid ${
+                  errorMsg ? "fa-circle-exclamation" : "fa-circle-check"
+                }`}
+              ></i>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-sm uppercase tracking-wide opacity-80">
+                {errorMsg ? "Error" : "Success"}
+              </span>
+              <span className="font-bold text-base">{errorMsg || successMsg}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Auth Container */}
       <div
@@ -337,8 +341,8 @@ export const Auth: React.FC = () => {
         .right-panel-active .overlay-container {
           transform: translateX(-100%);
         }
-        @keyframes slideIn {
-          from { transform: translateX(100%); opacity: 0; }
+        @keyframes slideInLeft {
+          from { transform: translateX(-100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
         }
       `}</style>

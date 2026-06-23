@@ -21,6 +21,11 @@ const connectionConfig = process.env.DATABASE_URL
 
 const pool = new Pool(connectionConfig);
 
+// Register an error listener to prevent idle client errors from crashing the backend process
+pool.on("error", (err) => {
+  console.error("⚠️ Unexpected error on idle database client:", err);
+});
+
 pool
   .connect()
   .then(() => console.log("✅ Database connected successfully"))

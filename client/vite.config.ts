@@ -35,10 +35,20 @@ export default defineConfig({
       "/login": {
         target: "http://localhost:3000",
         changeOrigin: true,
+        bypass: (req) => {
+          if (req.headers.accept && req.headers.accept.indexOf("html") !== -1) {
+            return "/index.html";
+          }
+        },
       },
       "/register": {
         target: "http://localhost:3000",
         changeOrigin: true,
+        bypass: (req) => {
+          if (req.headers.accept && req.headers.accept.indexOf("html") !== -1) {
+            return "/index.html";
+          }
+        },
       },
       "/logout": {
         target: "http://localhost:3000",
@@ -51,6 +61,11 @@ export default defineConfig({
       "/profile": {
         target: "http://localhost:3000",
         changeOrigin: true,
+        bypass: (req) => {
+          if (req.headers.accept && req.headers.accept.indexOf("html") !== -1) {
+            return "/index.html";
+          }
+        },
       },
     },
   },

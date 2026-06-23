@@ -93,7 +93,14 @@ export const Profile: React.FC = () => {
   return (
     <div className="max-w-xl mx-auto px-6 mt-36 mb-20 font-sans min-h-[50vh]">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700">
-        <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Account Settings</h1>
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4 border-b border-gray-100 dark:border-gray-700 pb-4">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Account Settings</h1>
+          {user && (
+            <span className="text-xs uppercase tracking-wider font-extrabold px-3 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400">
+              Role: {user.role}
+            </span>
+          )}
+        </div>
 
         {statusMsg && (
           <div className="bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400 p-4 rounded-xl mb-6 font-bold text-sm">
@@ -143,19 +150,21 @@ export const Profile: React.FC = () => {
           </button>
         </form>
 
-        <div className="border-t border-gray-100 dark:border-gray-700 my-8 pt-8">
-          <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Danger Zone</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-            Once you delete your account, there is no going back. Please be certain.
-          </p>
-          <button
-            onClick={handleDeleteAccount}
-            disabled={deleting}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 rounded-xl transition duration-300 shadow-md focus:outline-none"
-          >
-            {deleting ? "Deleting..." : "Delete Account"}
-          </button>
-        </div>
+        {user?.role === "user" && (
+          <div className="border-t border-gray-100 dark:border-gray-700 my-8 pt-8">
+            <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Danger Zone</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+              Once you delete your account, there is no going back. Please be certain.
+            </p>
+            <button
+              onClick={handleDeleteAccount}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 rounded-xl transition duration-300 shadow-md focus:outline-none"
+            >
+              {deleting ? "Deleting..." : "Delete Account"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

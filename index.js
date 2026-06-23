@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import expressLayouts from "express-ejs-layouts";
 import passport from "passport";
 import session from "express-session";
 import env from "dotenv";

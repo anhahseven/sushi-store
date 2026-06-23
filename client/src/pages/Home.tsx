@@ -7,6 +7,7 @@ import { useCart } from "../context/CartContext";
 import Swal from "sweetalert2";
 import { CardSkeleton } from "../components/ui/skeleton";
 import AnimatedCardStack from "../components/ui/animate-card-animation";
+import { optimizeCloudinaryUrl } from "../lib/utils";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -185,9 +186,10 @@ export function Home() {
                   >
                     <div className="absolute inset-0 w-full h-full">
                       <img
-                        src={cat.img}
+                        src={optimizeCloudinaryUrl(cat.img, 450)}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         alt={cat.name}
+                        loading="lazy"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-90 group-hover:opacity-80 transition-opacity duration-300"></div>
                     </div>
@@ -241,9 +243,10 @@ export function Home() {
                     <div className="absolute inset-0 w-full h-full">
                       {product.image_url ? (
                         <img
-                          src={product.image_url}
+                          src={optimizeCloudinaryUrl(product.image_url, 400)}
                           alt={product.name}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          loading="lazy"
                         />
                       ) : (
                         <div className="w-full h-full bg-gray-800 flex items-center justify-center text-4xl lg:text-6xl">

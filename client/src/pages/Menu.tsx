@@ -3,9 +3,9 @@ import axios from "axios";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { CategorySkeleton, CardSkeleton } from "../components/ui/skeleton";
-
 import Swal from "sweetalert2";
+import { CategorySkeleton, CardSkeleton } from "../components/ui/skeleton";
+import { optimizeCloudinaryUrl } from "../lib/utils";
 
 interface Product {
   id: string | number;
@@ -283,7 +283,7 @@ export const Menu: React.FC = () => {
                         {/* Image background */}
                         <div className="absolute inset-0 w-full h-full">
                           <img
-                            src={product.image_url || "https://via.placeholder.com/300"}
+                            src={optimizeCloudinaryUrl(product.image_url, 400)}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             loading="lazy"
                             alt={product.name}

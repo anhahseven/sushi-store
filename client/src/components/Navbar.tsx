@@ -40,7 +40,7 @@ export const Navbar: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    if (user && ["manager", "admin", "store_manager", "staff", "cashier"].includes(user.role.trim().toLowerCase())) {
+    if (user && user.role.trim().toLowerCase() === "staff") {
       const isDark = document.documentElement.classList.contains("dark");
       const { value: password } = await Swal.fire({
         title: "Confirm Password",
@@ -191,34 +191,9 @@ export const Navbar: React.FC = () => {
             </div>
           )}
 
+
           {/* Right Side Buttons */}
           <div className="flex items-center gap-3 lg:gap-6">
-            {isAuthenticated && isAdminOrManager && (
-              <Link
-                to="/admin/dashboard"
-                className="hidden lg:flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300"
-              >
-                <i className="fa-solid fa-chart-pie"></i> Dashboard
-              </Link>
-            )}
-
-            {isAuthenticated && user && ["manager", "admin", "store_manager", "staff"].includes(user.role.trim().toLowerCase()) && (
-              <Link
-                to="/staff/menu"
-                className="hidden lg:flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300"
-              >
-                <i className="fa-solid fa-utensils"></i> POS Menu
-              </Link>
-            )}
-
-            {isAuthenticated && user && ["manager", "admin", "store_manager", "cashier"].includes(user.role.trim().toLowerCase()) && (
-              <Link
-                to="/admin/orders"
-                className="hidden lg:flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-lg transition-colors"
-              >
-                <i className="fa-solid fa-cash-register"></i> POS Checkout
-              </Link>
-            )}
 
             {/* Profile Dropdown */}
             {isAuthenticated && user ? (
@@ -237,6 +212,9 @@ export const Navbar: React.FC = () => {
                       <p className="text-sm font-bold text-gray-800 dark:text-orange-400 truncate">
                         {user.email.split("@")[0]}
                       </p>
+                      <span className="inline-block mt-1 text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400">
+                        {user.role}
+                      </span>
                     </div>
                     {user.role === "user" && (
                       <Link
@@ -244,16 +222,45 @@ export const Navbar: React.FC = () => {
                         onClick={() => setProfileOpen(false)}
                         className="block px-4 py-3 text-sm text-gray-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        <i className="fa-solid fa-gear mr-2 text-gray-400"></i> Manage Account
+                        <i className="fa-solid fa-user mr-2 text-gray-400"></i> Profile
                       </Link>
                     )}
-                    <Link
-                      to="/orders"
-                      onClick={() => setProfileOpen(false)}
-                      className="block px-4 py-3 text-sm text-gray-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <i className="fa-solid fa-receipt mr-2 text-gray-400"></i> Orders
-                    </Link>
+                    {user && ["manager", "admin", "store_manager"].includes(user.role.trim().toLowerCase()) && (
+                      <Link
+                        to="/admin/dashboard"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-700 transition-colors border-t border-gray-100/60 dark:border-gray-800/60"
+                      >
+                        <i className="fa-solid fa-chart-pie mr-2 text-gray-405"></i> Dashboard
+                      </Link>
+                    )}
+                    {user && ["manager", "admin", "store_manager", "staff"].includes(user.role.trim().toLowerCase()) && (
+                      <Link
+                        to="/staff/menu"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-700 transition-colors border-t border-gray-100/60 dark:border-gray-800/60"
+                      >
+                        <i className="fa-solid fa-utensils mr-2 text-gray-405"></i> POS Menu
+                      </Link>
+                    )}
+                    {user && ["manager", "admin", "store_manager", "cashier"].includes(user.role.trim().toLowerCase()) && (
+                      <Link
+                        to="/admin/orders"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-700 transition-colors border-t border-gray-100/60 dark:border-gray-800/60"
+                      >
+                        <i className="fa-solid fa-cash-register mr-2 text-gray-405"></i> POS Checkout
+                      </Link>
+                    )}
+                    {user.role === "user" && (
+                      <Link
+                        to="/orders"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-700 transition-colors border-t border-gray-100/60 dark:border-gray-800/60"
+                      >
+                        <i className="fa-solid fa-receipt mr-2 text-gray-400"></i> Orders
+                      </Link>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="w-full text-left block px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border-t border-gray-100 dark:border-gray-700"

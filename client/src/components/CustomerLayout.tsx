@@ -8,18 +8,7 @@ import { useAuth } from "../context/AuthContext";
 export default function CustomerLayout() {
   const { user, isAuthenticated, loading } = useAuth();
 
-  if (!loading && isAuthenticated && user) {
-    const role = user.role.trim().toLowerCase();
-    if (role === "staff") {
-      return <Navigate to="/staff/menu" replace />;
-    }
-    if (role === "cashier") {
-      return <Navigate to="/admin/orders" replace />;
-    }
-    if (["admin", "manager", "store_manager"].includes(role)) {
-      return <Navigate to="/admin/dashboard" replace />;
-    }
-  }
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
