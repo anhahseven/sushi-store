@@ -4,6 +4,14 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { useAuth } from "../../context/AuthContext";
 import { useHeader } from "../../context/HeaderContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 interface StockLog {
   id: number;
@@ -145,13 +153,13 @@ export default function ManagerStockHistory() {
     }
   };
 
-  const isHeadManagerOrAdmin = user && ["admin", "manager"].includes(user.role.trim().toLowerCase());
+  const isHeadManagerOrAdmin = user && ["admin", "manager", "demo"].includes(user.role.trim().toLowerCase());
 
   const { setHeaderContent } = useHeader();
 
   useEffect(() => {
     setHeaderContent(
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full sm:w-auto">
         <input
           type="date"
           value={dateFilter}
@@ -164,29 +172,34 @@ export default function ManagerStockHistory() {
               return next;
             });
           }}
-          className="px-2.5 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-700 dark:text-white focus:outline-none shadow-sm transition-colors"
+          className="px-2.5 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-750 dark:text-white focus:outline-none shadow-sm transition-colors w-full sm:w-auto shrink-0"
         />
 
-        <select
-          value={locationFilter}
-          onChange={(e) => {
-            setLocationFilter(e.target.value);
+        <Select
+          value={locationFilter || "all-locations"}
+          onValueChange={(val) => {
+            const actualVal = val === "all-locations" ? "" : val;
+            setLocationFilter(actualVal);
             setSearchParams(prev => {
               const next = new URLSearchParams(prev);
-              if (e.target.value) next.set("location", e.target.value);
+              if (actualVal) next.set("location", actualVal);
               else next.delete("location");
               return next;
             });
           }}
-          className="px-2.5 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-700 dark:text-white focus:outline-none shadow-sm transition-colors"
         >
-          <option value="">All Locations</option>
-          {locations.map((loc) => (
-            <option key={loc.id} value={loc.name}>
-              {loc.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="px-2.5 py-1.5 h-8 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-750 dark:text-white focus:outline-none shadow-sm transition-colors w-full sm:w-[150px] flex-1 sm:flex-none pr-8 shrink-0 flex items-center justify-between">
+            <SelectValue placeholder="All Locations" />
+          </SelectTrigger>
+          <SelectContent className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 rounded-lg shadow-lg text-xs font-semibold">
+            <SelectItem value="all-locations">All Locations</SelectItem>
+            {locations.map((loc) => (
+              <SelectItem key={loc.id} value={loc.name}>
+                {loc.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {(dateFilter || locationFilter) && (
           <button

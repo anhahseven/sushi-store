@@ -4,6 +4,9 @@ export default {
   darkMode: "class",
   theme: {
     extend: {
+      spacing: {
+        26: "6.5rem",
+      },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
       },

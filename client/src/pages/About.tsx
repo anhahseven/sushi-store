@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export const About: React.FC = () => {
   return (
-    <div className="max-w-7xl mx-auto px-6 mt-36 mb-20 font-sans">
+    <div className="max-w-7xl mx-auto px-6 mt-10 lg:mt-36 mb-20 font-sans">
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-24">
         <div>
           <div className="inline-flex items-center gap-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider mb-6">

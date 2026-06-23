@@ -74,7 +74,7 @@ export const Checkout: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-6 mt-36 mb-20 font-sans min-h-[50vh]">
+    <div className="max-w-4xl mx-auto px-6 mt-10 lg:mt-36 mb-20 font-sans min-h-[50vh]">
       <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">Checkout (Pick-up)</h1>
 
       {loading ? (

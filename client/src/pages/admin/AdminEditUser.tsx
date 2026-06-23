@@ -167,6 +167,8 @@ export default function AdminEditUser() {
             <option value="staff">Staff (POS Access)</option>
             <option value="cashier">Cashier (Payment)</option>
             <option value="store_manager">Local Store Manager</option>
+            <option value="admin">Administrator</option>
+            <option value="demo">Demo (Read-only)</option>
           </select>
         </div>
 

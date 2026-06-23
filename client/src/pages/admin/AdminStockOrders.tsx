@@ -4,6 +4,14 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { useAuth } from "../../context/AuthContext";
 import { useHeader } from "../../context/HeaderContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 interface StockItem {
   id: number;
@@ -50,28 +58,32 @@ export default function AdminStockOrders() {
   useEffect(() => {
     if (isStoreManager) {
       setHeaderContent(
-        <div className="flex items-center gap-2">
-          <div className="relative w-48">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-48">
             <i className="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-gray-400 text-xs"></i>
             <input
               type="text"
               placeholder="Search items..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-7 pr-3 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-700 dark:text-white focus:outline-none shadow-sm transition-colors placeholder-gray-400"
+              className="w-full pl-7 pr-3 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-755 dark:text-white focus:outline-none shadow-sm transition-colors placeholder-gray-400"
             />
           </div>
-          <select
+          <Select
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 text-xs font-semibold text-gray-700 dark:text-white rounded-lg px-2.5 py-1.5 focus:outline-none shadow-sm transition-colors cursor-pointer"
+            onValueChange={(val) => setSelectedCategory(val)}
           >
-            <option value="All">All Categories</option>
-            <option value="Cook">Cook</option>
-            <option value="Drink">Drink</option>
-            <option value="Supplies">Supplies</option>
-            <option value="Packaging">Packaging</option>
-          </select>
+            <SelectTrigger className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 text-xs font-semibold text-gray-750 dark:text-white rounded-lg px-2.5 py-1.5 h-8 focus:outline-none shadow-sm transition-colors w-full sm:w-[150px] flex-1 sm:flex-none pr-8 shrink-0 flex items-center justify-between">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 rounded-lg shadow-lg text-xs font-semibold">
+              <SelectItem value="All">All Categories</SelectItem>
+              <SelectItem value="Cook">Cook</SelectItem>
+              <SelectItem value="Drink">Drink</SelectItem>
+              <SelectItem value="Supplies">Supplies</SelectItem>
+              <SelectItem value="Packaging">Packaging</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       );
     } else {
@@ -268,7 +280,7 @@ export default function AdminStockOrders() {
     }
   };
 
-  const isAdminOrManager = ["admin", "manager"].includes(user?.role?.trim().toLowerCase() || "");
+  const isAdminOrManager = ["admin", "manager", "demo"].includes(user?.role?.trim().toLowerCase() || "");
 
   // Filtered inventory
   const filteredStocks = stocks.filter((item) => {

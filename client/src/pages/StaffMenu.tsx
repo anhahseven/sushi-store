@@ -37,6 +37,59 @@ export const StaffMenu: React.FC = () => {
   const observerTarget = useRef<HTMLDivElement>(null);
   const [visibleLimit, setVisibleLimit] = useState<number>(10);
 
+  // Category scroller mouse drag-to-scroll states
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeftVal, setScrollLeftVal] = useState(0);
+  const hasDragged = useRef(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollerRef.current) return;
+    setIsDragging(true);
+    hasDragged.current = false;
+    setStartX(e.pageX - scrollerRef.current.offsetLeft);
+    setScrollLeftVal(scrollerRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // Scroll speed multiplier
+    if (Math.abs(walk) > 5) {
+      hasDragged.current = true;
+    }
+    scrollerRef.current.scrollLeft = scrollLeftVal - walk;
+  };
+
+  // Listen to native mouse wheel events to translate vertical scroll to horizontal scroll
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const handleWheelNative = (e: WheelEvent) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        scroller.scrollLeft += e.deltaY;
+      }
+    };
+
+    scroller.addEventListener("wheel", handleWheelNative, { passive: false });
+    return () => {
+      scroller.removeEventListener("wheel", handleWheelNative);
+    };
+  }, []);
+
+
   useEffect(() => {
     setVisibleLimit(10);
   }, [activeCategory, searchTerm]);
@@ -266,7 +319,7 @@ export const StaffMenu: React.FC = () => {
       <Navbar />
       
       {/* LEFT COLUMN: Menu Browser */}
-      <div className="flex-1 overflow-y-auto px-4 lg:px-6 pt-24 lg:pt-28 pb-6 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-850">
+      <div className="flex-1 overflow-y-auto px-4 lg:px-6 pt-24 lg:pt-36 pb-6 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-850">
         <div className="max-w-7xl mx-auto w-full">
           {/* Search and Filters */}
           <div className="space-y-4 mb-6">
@@ -284,12 +337,22 @@ export const StaffMenu: React.FC = () => {
             </div>
 
             {/* Categories Horizontal Scroller */}
-            <div className="w-full overflow-x-auto no-scrollbar scroll-smooth">
+            <div
+              ref={scrollerRef}
+              onMouseDown={handleMouseDown}
+              onMouseLeave={handleMouseLeave}
+              onMouseUp={handleMouseUp}
+              onMouseMove={handleMouseMove}
+              className="w-full overflow-x-auto no-scrollbar scroll-smooth cursor-grab active:cursor-grabbing select-none"
+            >
               <div className="flex gap-2.5 py-1">
                 {displayCategories.map((cat) => (
                   <button
                     key={cat.id}
-                    onClick={() => setActiveCategory(cat.name)}
+                    onClick={() => {
+                      if (hasDragged.current) return;
+                      setActiveCategory(cat.name);
+                    }}
                     className={`whitespace-nowrap px-4 py-2 sm:px-5 sm:py-2.5 rounded-full font-bold text-xs sm:text-sm transition-all flex-shrink-0 cursor-pointer ${
                       activeCategory === cat.name
                         ? "bg-orange-500 text-white shadow-3d-orange scale-105"
@@ -392,7 +455,7 @@ export const StaffMenu: React.FC = () => {
       {/* RIGHT COLUMN: Active Ticket / Bill Calculator */}
       <aside className={`transition-all duration-300 flex flex-col shrink-0 z-10 shadow-2xl bg-white dark:bg-gray-900 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-800 text-gray-950 dark:text-white overflow-hidden ${
         showStaffTicket 
-          ? "w-full lg:w-[380px] h-[400px] lg:h-full pt-6 lg:pt-28 pb-6 px-6 opacity-100" 
+          ? "w-full lg:w-[380px] h-[400px] lg:h-full pt-6 lg:pt-36 pb-6 px-6 opacity-100" 
           : "w-0 h-0 lg:w-0 lg:h-full opacity-0 pointer-events-none p-0 border-transparent"
       }`}>
         <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-4 mb-4">

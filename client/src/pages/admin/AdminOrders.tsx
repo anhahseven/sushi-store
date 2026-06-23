@@ -3,6 +3,14 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useHeader } from "../../context/HeaderContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 interface Order {
   id: number;
@@ -253,7 +261,7 @@ export default function AdminOrders() {
 
   useEffect(() => {
     setHeaderContent(
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full sm:w-auto">
         <input
           type="date"
           value={filterDate}
@@ -266,52 +274,63 @@ export default function AdminOrders() {
               return next;
             });
           }}
-          className="px-2.5 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-700 dark:text-white focus:outline-none shadow-sm transition-colors"
+          className="px-2.5 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-750 dark:text-white focus:outline-none shadow-sm transition-colors w-full sm:w-auto shrink-0"
         />
 
-        <select
-          value={filterLocation}
-          onChange={(e) => {
-            setFilterLocation(e.target.value);
+        <Select
+          value={filterLocation || "all-locations"}
+          onValueChange={(val) => {
+            const actualVal = val === "all-locations" ? "" : val;
+            setFilterLocation(actualVal);
             setSearchParams(prev => {
               const next = new URLSearchParams(prev);
-              if (e.target.value) next.set("location", e.target.value);
+              if (actualVal) next.set("location", actualVal);
               else next.delete("location");
               return next;
             });
           }}
-          className="px-2.5 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-700 dark:text-white focus:outline-none shadow-sm transition-colors"
         >
-          <option value="">All Locations</option>
-          {locations.map((loc) => (
-            <option key={loc.id} value={loc.name}>
-              {loc.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="px-2.5 py-1.5 h-8 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-750 dark:text-white focus:outline-none shadow-sm transition-colors w-full sm:w-[150px] flex-1 sm:flex-none pr-8 shrink-0 flex items-center justify-between">
+            <SelectValue placeholder="All Locations" />
+          </SelectTrigger>
+          <SelectContent className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 rounded-lg shadow-lg text-xs font-semibold">
+            <SelectItem value="all-locations">All Locations</SelectItem>
+            {locations.map((loc) => (
+              <SelectItem key={loc.id} value={loc.name}>
+                {loc.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <select
-          value={filterStatus}
-          onChange={(e) => {
-            setFilterStatus(e.target.value);
+        <Select
+          value={filterStatus || "all-statuses"}
+          onValueChange={(val) => {
+            const actualVal = val === "all-statuses" ? "" : val;
+            setFilterStatus(actualVal);
             setSearchParams(prev => {
               const next = new URLSearchParams(prev);
-              if (e.target.value) next.set("status", e.target.value);
+              if (actualVal) next.set("status", actualVal);
               else next.delete("status");
               return next;
             });
           }}
-          className="px-2.5 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-700 dark:text-white focus:outline-none shadow-sm transition-colors"
         >
-          <option value="">All Statuses</option>
-          <option value="Pending">Pending</option>
-          <option value="Processing">Processing</option>
-          <option value="Completed">Completed</option>
-          <option value="Cancel Requested">Cancel Requested</option>
-          <option value="Refund Requested">Refund Requested</option>
-          <option value="Cancelled">Cancelled</option>
-          <option value="Refunded">Refunded</option>
-        </select>
+          <SelectTrigger className="px-2.5 py-1.5 h-8 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-750 dark:text-white focus:outline-none shadow-sm transition-colors w-full sm:w-[150px] flex-1 sm:flex-none pr-8 shrink-0 flex items-center justify-between">
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 rounded-lg shadow-lg text-xs font-semibold">
+            <SelectItem value="all-statuses">All Statuses</SelectItem>
+            <SelectItem value="Pending">Pending</SelectItem>
+            <SelectItem value="Processing">Processing</SelectItem>
+            <SelectItem value="Completed">Completed</SelectItem>
+            <SelectItem value="Cancel Requested">Cancel Requested</SelectItem>
+            <SelectItem value="Refund Requested">Refund Requested</SelectItem>
+            <SelectItem value="Cancelled">Cancelled</SelectItem>
+            <SelectItem value="Refunded">Refunded</SelectItem>
+          </SelectContent>
+        </Select>
+
 
         {(filterDate || filterLocation || filterStatus) && (
           <button

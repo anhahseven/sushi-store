@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useAuth } from "../../context/AuthContext";
+import { useHeader } from "../../context/HeaderContext";
+
 
 interface UserAccount {
   id: number;
@@ -21,16 +23,19 @@ const API_BASE = import.meta.env.VITE_API_URL || "";
 export default function AdminUsers() {
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
+  const { setHeaderContent } = useHeader();
 
   const [usersList, setUsersList] = useState<UserAccount[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Create Form States
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");
   const [assignedLocationId, setAssignedLocationId] = useState("");
+
 
   const fetchUsersData = async () => {
     setLoading(true);
@@ -49,6 +54,25 @@ export default function AdminUsers() {
   useEffect(() => {
     fetchUsersData();
   }, []);
+
+  useEffect(() => {
+    setHeaderContent(
+      <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="relative w-full sm:w-48">
+          <i className="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-gray-400 text-xs"></i>
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-7 pr-3 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-755 dark:text-white focus:outline-none shadow-sm transition-colors placeholder-gray-400"
+          />
+        </div>
+      </div>
+    );
+    return () => setHeaderContent(null);
+  }, [searchTerm, setHeaderContent]);
+
 
   const showNotification = (message: string, type: "success" | "error" = "success") => {
     const isDark = document.documentElement.classList.contains("dark");
@@ -154,6 +178,12 @@ export default function AdminUsers() {
             Cashier
           </span>
         );
+      case "demo":
+        return (
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-pink-100 dark:bg-pink-900/50 text-pink-755 dark:text-pink-300 uppercase tracking-wide">
+            Demo (Read-only)
+          </span>
+        );
       default:
         return (
           <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 uppercase tracking-wide">
@@ -169,18 +199,15 @@ export default function AdminUsers() {
       <div id="toast-container" className="fixed top-24 right-4 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
       {/* Creation Box */}
-      <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 transition-colors">
-        <h2 className="text-sm font-bold text-gray-800 dark:text-white mb-4 uppercase tracking-wide flex items-center gap-2">
-          <i className="fa-solid fa-user-plus text-indigo-500"></i> Create New Account
-        </h2>
-
-        <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+      <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm transition-colors">
+        <h2 className="text-lg font-bold text-gray-850 dark:text-white mb-4">Create New Staff User</h2>
+        <form onSubmit={handleCreateUser} className="flex flex-col md:flex-row gap-4 items-end">
           <div className="w-full">
             <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">EMAIL ADDRESS</label>
             <input
               type="email"
               required
-              placeholder="user@opulent.com"
+              placeholder="name@store.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-805 dark:text-white border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-gray-400"
@@ -211,6 +238,8 @@ export default function AdminUsers() {
               <option value="cashier">Cashier (Payment)</option>
               <option value="store_manager">Store Manager</option>
               <option value="manager">Head Manager</option>
+              <option value="admin">Administrator</option>
+              <option value="demo">Demo (Read-only)</option>
             </select>
           </div>
 
@@ -250,39 +279,48 @@ export default function AdminUsers() {
           <div className="col-span-full text-center py-8 text-gray-500">
             <i className="fa-solid fa-spinner fa-spin mr-2"></i> Loading users...
           </div>
-        ) : usersList.length > 0 ? (
-          usersList.map((u) => (
-            <div
-              key={u.id}
-              className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center hover:shadow-md transition-all"
-            >
-              <h3 className="font-bold text-lg text-gray-800 dark:text-white truncate" title={u.email}>
-                {u.email}
-              </h3>
-
-              <div className="my-3">{getRoleBadge(u.role)}</div>
-
-              <div className="flex justify-center gap-2 mt-4">
-                <Link
-                  to={`/admin/users/edit/${u.id}`}
-                  className="px-4 py-2 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors border border-gray-200 dark:border-gray-700"
-                >
-                  Edit
-                </Link>
-
-                {currentUser && currentUser.id !== u.id && (
-                  <button
-                    onClick={() => handleDeleteUser(u.id)}
-                    className="px-4 py-2 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 rounded-lg text-xs font-bold hover:bg-red-105 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/30"
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
-            </div>
-          ))
         ) : (
-          <p className="text-gray-500 dark:text-gray-400 col-span-3 text-center">No users found.</p>
+          (() => {
+            const filtered = usersList.filter(
+              (u) =>
+                u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                u.role.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            return filtered.length > 0 ? (
+              filtered.map((u) => (
+                <div
+                  key={u.id}
+                  className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center hover:shadow-md transition-all"
+                >
+                  <h3 className="font-bold text-lg text-gray-800 dark:text-white truncate" title={u.email}>
+                    {u.email}
+                  </h3>
+
+                  <div className="my-3">{getRoleBadge(u.role)}</div>
+
+                  <div className="flex justify-center gap-2 mt-4">
+                    <Link
+                      to={`/admin/users/edit/${u.id}`}
+                      className="px-4 py-2 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors border border-gray-200 dark:border-gray-700"
+                    >
+                      Edit
+                    </Link>
+
+                    {currentUser && currentUser.id !== u.id && (
+                      <button
+                        onClick={() => handleDeleteUser(u.id)}
+                        className="px-4 py-2 bg-red-50 dark:bg-red-955/20 text-red-600 dark:text-red-400 rounded-lg text-xs font-bold hover:bg-red-105 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/30"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 col-span-3 text-center">No users found matching search query.</p>
+            );
+          })()
         )}
       </div>
     </div>

@@ -10,7 +10,7 @@ router.post("/api/manager/daily-stock", checkAuthenticated, checkRole(["store_ma
   const client = await pool.connect();
   try {
     let locId = req.user.assigned_location_id;
-    if (["admin", "manager"].includes(req.user.role)) {
+    if (["admin", "manager", "demo"].includes(req.user.role)) {
       if (req.body.location_id) locId = req.body.location_id;
       else if (!locId) {
         const firstLoc = await client.query("SELECT id FROM locations ORDER BY id ASC LIMIT 1");
@@ -84,7 +84,7 @@ router.post("/api/manager/daily-stock/toggle-lock/:id", checkAuthenticated, chec
 router.get("/api/manager/daily-stock", checkAuthenticated, checkRole(["store_manager", "admin", "manager"]), async (req, res) => {
   try {
     let locId = req.user.assigned_location_id ? String(req.user.assigned_location_id) : null;
-    if (["admin", "manager"].includes(req.user.role)) {
+    if (["admin", "manager", "demo"].includes(req.user.role)) {
       if (req.query.location) locId = String(req.query.location);
       else if (!locId) {
         const firstLoc = await pool.query("SELECT id FROM locations ORDER BY id ASC LIMIT 1");
@@ -122,7 +122,7 @@ router.get("/api/manager/daily-stock/edit/:id", checkAuthenticated, async (req, 
     const log = logRes.rows[0];
     const diffMinutes = (new Date() - new Date(log.created_at)) / 1000 / 60;
     
-    const isAdmin = req.user.role === "admin" || req.user.role === "manager";
+    const isAdmin = req.user.role === "admin" || req.user.role === "manager" || req.user.role === "demo";
     if (!isAdmin && !log.is_unlocked && (req.user.id != log.user_id || diffMinutes > 5)) {
       return res.status(403).json({ error: "Edit time limit expired. Ask a Manager to unlock this report." });
     }
@@ -138,7 +138,7 @@ router.get("/api/manager/stock-history", checkAuthenticated, checkRole(["store_m
     let queryParams = [];
     let queryConditions = [];
     
-    if (["admin", "manager"].includes(req.user.role) && req.query.location) {
+    if (["admin", "manager", "demo"].includes(req.user.role) && req.query.location) {
       queryConditions.push(`l.id = $${queryParams.length + 1}`);
       queryParams.push(String(req.query.location));
     } else if (req.user.assigned_location_id) {

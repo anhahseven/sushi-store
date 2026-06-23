@@ -136,7 +136,7 @@ export default function AdminCategory() {
   };
 
   const userRole = user?.role || "user";
-  const isAdmin = userRole.trim().toLowerCase() === "admin";
+  const isAdmin = userRole.trim().toLowerCase() === "admin" || userRole.trim().toLowerCase() === "demo";
 
   const { setHeaderContent } = useHeader();
 

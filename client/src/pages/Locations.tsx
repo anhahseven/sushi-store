@@ -35,7 +35,7 @@ export const Locations: React.FC = () => {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 mt-36 font-sans min-h-[50vh]">
+    <div className="max-w-7xl mx-auto px-6 mt-10 lg:mt-36 font-sans min-h-[50vh]">
       <section id="page-locations" className="mb-6 md:mb-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10">
           <div>

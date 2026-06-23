@@ -36,6 +36,39 @@ export const Menu: React.FC = () => {
   const observerTarget = useRef<HTMLDivElement>(null);
   const [visibleLimit, setVisibleLimit] = useState<number>(10);
 
+  // Category scroller mouse drag-to-scroll states
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeftVal, setScrollLeftVal] = useState(0);
+  const hasDragged = useRef(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    hasDragged.current = false;
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeftVal(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // Scroll speed multiplier
+    if (Math.abs(walk) > 5) {
+      hasDragged.current = true;
+    }
+    scrollContainerRef.current.scrollLeft = scrollLeftVal - walk;
+  };
+
   useEffect(() => {
     setVisibleLimit(10);
   }, [activeCategory, searchTerm]);
@@ -61,42 +94,22 @@ export const Menu: React.FC = () => {
       }
     };
   }, [products, activeCategory, searchTerm]);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-
-  const checkScroll = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-      setCanScrollLeft(scrollLeft > 2);
-      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 2);
-    }
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(checkScroll, 100);
-    return () => clearTimeout(timer);
-  }, [categories]);
-
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (el) {
-      el.addEventListener("scroll", checkScroll);
-      window.addEventListener("resize", checkScroll);
-    }
-    return () => {
-      if (el) {
-        el.removeEventListener("scroll", checkScroll);
-      }
-      window.removeEventListener("resize", checkScroll);
-    };
-  }, []);
+      const handleWheelNative = (e: WheelEvent) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          el.scrollLeft += e.deltaY;
+        }
+      };
+      el.addEventListener("wheel", handleWheelNative, { passive: false });
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const offset = direction === "left" ? -250 : 250;
-      scrollContainerRef.current.scrollBy({ left: offset, behavior: "smooth" });
+      return () => {
+        el.removeEventListener("wheel", handleWheelNative);
+      };
     }
-  };
+  }, []);
 
   const API_BASE = import.meta.env.VITE_API_URL || "";
 
@@ -170,7 +183,7 @@ export const Menu: React.FC = () => {
   const displayCategories = [{ id: 0, name: "All" }, ...categories];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-24 lg:mt-36 font-sans min-h-screen pb-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-10 lg:mt-36 font-sans min-h-screen pb-16">
       {/* Search and Filters */}
       <div className="mb-8 lg:mb-20 flex flex-col items-center">
         <div className="relative w-full max-w-4xl group mb-8">
@@ -187,22 +200,15 @@ export const Menu: React.FC = () => {
         </div>
 
         {/* Category Filters */}
-        <div className="relative w-full max-w-5xl flex items-center px-8 lg:px-12">
-          {/* Left Arrow Button */}
-          {canScrollLeft && (
-            <button
-              onClick={() => scroll("left")}
-              className="absolute left-0 z-10 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-orange-500 hover:text-white dark:hover:bg-orange-500 text-gray-700 dark:text-gray-200 transition-all duration-300 active:scale-90"
-              aria-label="Scroll left"
-            >
-              <i className="fa-solid fa-chevron-left text-xs sm:text-sm lg:text-base"></i>
-            </button>
-          )}
-
+        <div className="relative w-full max-w-5xl flex items-center px-4">
           {/* Categories Row */}
           <div
             ref={scrollContainerRef}
-            className="w-full overflow-x-auto py-2 no-scrollbar scroll-smooth"
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            className="w-full overflow-x-auto py-2 no-scrollbar scroll-smooth cursor-grab active:cursor-grabbing select-none"
           >
             <div className="flex flex-nowrap gap-2 sm:gap-3 justify-start md:justify-[safe_center] px-4">
               {loading ? (
@@ -211,8 +217,11 @@ export const Menu: React.FC = () => {
                 displayCategories.map((cat) => (
                   <button
                     key={cat.id}
-                    onClick={() => setActiveCategory(cat.name)}
-                    className={`whitespace-nowrap px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-full font-bold text-xs sm:text-sm md:text-base lg:text-lg transition-all flex-shrink-0 ${
+                    onClick={() => {
+                      if (hasDragged.current) return;
+                      setActiveCategory(cat.name);
+                    }}
+                    className={`whitespace-nowrap px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-full font-bold text-xs sm:text-sm md:text-base lg:text-lg transition-all flex-shrink-0 cursor-pointer ${
                       activeCategory === cat.name
                         ? "bg-orange-500 text-white shadow-3d-orange scale-105"
                         : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 shadow-3d-gray hover:bg-orange-50 dark:hover:bg-gray-700 hover:text-orange-500"
@@ -224,17 +233,6 @@ export const Menu: React.FC = () => {
               )}
             </div>
           </div>
-
-          {/* Right Arrow Button */}
-          {canScrollRight && (
-            <button
-              onClick={() => scroll("right")}
-              className="absolute right-0 z-10 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-orange-500 hover:text-white dark:hover:bg-orange-500 text-gray-700 dark:text-gray-200 transition-all duration-300 active:scale-90"
-              aria-label="Scroll right"
-            >
-              <i className="fa-solid fa-chevron-right text-xs sm:text-sm lg:text-base"></i>
-            </button>
-          )}
         </div>
       </div>
 

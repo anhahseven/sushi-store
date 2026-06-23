@@ -15,7 +15,7 @@ export const Auth: React.FC = () => {
       const role = user.role?.trim().toLowerCase();
       if (role === "staff") navigate("/staff/menu");
       else if (role === "cashier") navigate("/admin/orders");
-      else if (["admin", "manager", "store_manager"].includes(role || "")) navigate("/admin/dashboard");
+      else if (["admin", "manager", "store_manager", "demo"].includes(role || "")) navigate("/admin/dashboard");
       else navigate("/");
     }
   }, [isAuthenticated, user, navigate]);
@@ -279,6 +279,16 @@ export const Auth: React.FC = () => {
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
+
+            {/* Demo Account Credentials Note */}
+            <div className="mt-4 p-3 bg-orange-50/70 border border-orange-100/80 rounded-xl text-left w-full text-xs">
+              <div className="font-bold text-orange-700 flex items-center gap-1.5 mb-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                Demo Account (Read-only access)
+              </div>
+              <p className="text-gray-650">Email: <span className="font-mono font-bold select-all text-gray-800">demo@sushistore.com</span></p>
+              <p className="text-gray-650">Password: <span className="font-mono font-bold select-all text-gray-800">demo1234</span></p>
+            </div>
 
             <p className="md:hidden mt-6 text-sm text-gray-500">
               Don't have an account?{" "}

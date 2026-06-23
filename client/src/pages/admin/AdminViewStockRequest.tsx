@@ -4,6 +4,14 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { useAuth } from "../../context/AuthContext";
 import { useHeader } from "../../context/HeaderContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 interface RequestItem {
   id: number;
@@ -53,8 +61,8 @@ export default function AdminViewStockRequest() {
 
   useEffect(() => {
     setHeaderContent(
-      <div className="flex items-center gap-2 text-xs font-semibold">
-        <span className="text-gray-400 dark:text-zinc-500 uppercase text-[10px] tracking-wider shrink-0">Filter List:</span>
+      <div className="flex items-center gap-2 text-xs font-semibold w-full sm:w-auto">
+        <span className="text-gray-450 dark:text-zinc-500 uppercase text-[10px] tracking-wider shrink-0 hidden sm:inline">Filter List:</span>
         <input
           type="date"
           value={filterDate}
@@ -62,23 +70,28 @@ export default function AdminViewStockRequest() {
             setFilterDate(e.target.value);
             handleFilterChange(e.target.value, filterLocation);
           }}
-          className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-white rounded-lg px-2 py-1.5 focus:outline-none shadow-sm transition-colors text-xs shrink-0"
+          className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 text-gray-750 dark:text-white rounded-lg px-2 py-1.5 focus:outline-none shadow-sm transition-colors text-xs shrink-0 w-full sm:w-auto"
         />
-        <select
-          value={filterLocation}
-          onChange={(e) => {
-            setFilterLocation(e.target.value);
-            handleFilterChange(filterDate, e.target.value);
+        <Select
+          value={filterLocation || "all-locations"}
+          onValueChange={(val) => {
+            const actualVal = val === "all-locations" ? "" : val;
+            setFilterLocation(actualVal);
+            handleFilterChange(filterDate, actualVal);
           }}
-          className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-white rounded-lg px-2.5 py-1.5 focus:outline-none shadow-sm transition-colors cursor-pointer text-xs shrink-0"
         >
-          <option value="">All Locations</option>
-          {locations.map((loc) => (
-            <option key={loc.id} value={loc.id}>
-              {loc.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 text-gray-750 dark:text-white rounded-lg px-2.5 py-1.5 h-8 focus:outline-none shadow-sm transition-colors text-xs shrink-0 w-full sm:w-[150px] flex-1 sm:flex-none pr-8 flex items-center justify-between">
+            <SelectValue placeholder="All Locations" />
+          </SelectTrigger>
+          <SelectContent className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 rounded-lg shadow-lg text-xs font-semibold">
+            <SelectItem value="all-locations">All Locations</SelectItem>
+            {locations.map((loc) => (
+              <SelectItem key={loc.id} value={String(loc.id)}>
+                {loc.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     );
     return () => setHeaderContent(null);
@@ -175,7 +188,7 @@ export default function AdminViewStockRequest() {
     );
   }
 
-  const isAdminOrManager = user && ["admin", "manager"].includes(user.role.trim().toLowerCase());
+  const isAdminOrManager = user && ["admin", "manager", "demo"].includes(user.role.trim().toLowerCase());
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">

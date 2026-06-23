@@ -251,7 +251,7 @@ function AdminLayoutContent() {
           }}
         >
           {/* Header: Clean layout, breadcrumbs, search, notification controls */}
-          <header className="h-14 border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between px-6 shrink-0 transition-colors duration-300">
+          <header className="h-14 border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-4 px-6 shrink-0 transition-colors duration-300">
             
             {/* Breadcrumb controls */}
             <div className="flex items-center gap-3">
@@ -262,29 +262,26 @@ function AdminLayoutContent() {
                 <MenuIcon className="w-5 h-5" />
               </button>
               
-              <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 dark:text-zinc-500">
-                <Compass className="w-4 h-4" />
-                <span>Overview</span>
-                <span>/</span>
-                <span className="text-gray-900 dark:text-white font-bold">{getPageTitle()}</span>
+              <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-gray-400 dark:text-zinc-500">
+                <Compass className="w-4 h-4 shrink-0" />
+                <span className="hidden md:inline">Overview</span>
+                <span className="hidden md:inline">/</span>
+                <span className="text-gray-900 dark:text-white font-bold truncate max-w-[120px] sm:max-w-none">{getPageTitle()}</span>
               </div>
             </div>
 
             {/* Right side (contains filters and action tools) */}
-            <div className="flex items-center gap-4">
+            <div className="flex-1 flex items-center justify-end gap-2 sm:gap-4 max-w-full overflow-hidden">
               {headerContent && (
-                <div className="flex items-center gap-3 border-r border-gray-100 dark:border-zinc-800/80 pr-4">
-                  {headerContent}
+                <div className="flex-1 flex items-center justify-start sm:justify-end border-r border-gray-100 dark:border-zinc-800/80 pr-2 sm:pr-4 overflow-hidden">
+                  <div className="w-full flex justify-start sm:justify-end overflow-x-auto no-scrollbar max-w-[calc(100vw-150px)] sm:max-w-[calc(100vw-300px)] md:max-w-[calc(100vw-420px)] lg:max-w-none">
+                    {headerContent}
+                  </div>
                 </div>
               )}
               
               {/* Action Tools */}
               <div className="flex items-center gap-2">
-                
-                {/* Quick search icon */}
-                <button className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors">
-                  <Search className="w-4 h-4" />
-                </button>
                 
                 {/* Notifications mock */}
                 <button className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors">

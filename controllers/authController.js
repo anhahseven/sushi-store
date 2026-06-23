@@ -25,7 +25,7 @@ router.post("/login", (req, res, next) => {
       const rawRole = user.role || "";
       const role = rawRole.trim().toLowerCase();
       let targetUrl = "/";
-      if (["admin", "manager", "store_manager", "cashier"].includes(role)) {
+      if (["admin", "manager", "store_manager", "cashier", "demo"].includes(role)) {
         targetUrl = "/admin/dashboard";
       } else if (role === "staff") {
         targetUrl = "/staff/menu";
@@ -82,7 +82,7 @@ router.get("/auth/google", passport.authenticate("google", { scope: ["profile", 
 
 router.get("/auth/google/secrets", passport.authenticate("google", { failureRedirect: "/login" }), (req, res) => {
   const role = req.user.role;
-  if (["admin", "manager", "store_manager"].includes(role)) {
+  if (["admin", "manager", "store_manager", "demo"].includes(role)) {
     res.redirect("/admin/dashboard?loginSuccess=true");
   } else {
     res.redirect("/?loginSuccess=true");

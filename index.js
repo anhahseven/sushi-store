@@ -84,6 +84,17 @@ setupPassport();
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Block write operations for 'demo' role
+app.use((req, res, next) => {
+  if (req.user && req.user.role === 'demo' && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+    if (req.path.startsWith('/api/auth/logout') || req.path.startsWith('/logout') || req.path === '/api/auth/verify-password') {
+      return next();
+    }
+    return res.status(403).json({ error: "Demo Mode: Write actions are disabled for the demo role." });
+  }
+  next();
+});
+
 // Global Template Variables
 
 app.use((req, res, next) => {

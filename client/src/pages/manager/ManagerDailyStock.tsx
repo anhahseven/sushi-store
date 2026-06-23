@@ -4,6 +4,14 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { useAuth } from "../../context/AuthContext";
 import { useHeader } from "../../context/HeaderContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 interface MasterItem {
   id: number;
@@ -162,34 +170,38 @@ export default function ManagerDailyStock() {
     }
   };
 
-  const isHeadManagerOrAdmin = user && ["admin", "manager"].includes(user.role.trim().toLowerCase());
+  const isHeadManagerOrAdmin = user && ["admin", "manager", "demo"].includes(user.role.trim().toLowerCase());
 
   const { setHeaderContent } = useHeader();
 
   useEffect(() => {
     setHeaderContent(
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full sm:w-auto">
         <input
           type="date"
           value={date}
           onChange={(e) => handleDateChange(e.target.value)}
-          className="px-2.5 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-700 dark:text-white focus:outline-none shadow-sm transition-colors"
+          className="px-2.5 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-750 dark:text-white focus:outline-none shadow-sm transition-colors w-full sm:w-auto shrink-0"
         />
 
         {isHeadManagerOrAdmin ? (
-          <select
-            value={locationId}
-            onChange={(e) => handleLocationChange(e.target.value)}
-            className="px-2.5 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-700 dark:text-white focus:outline-none shadow-sm transition-colors min-w-[140px]"
+          <Select
+            value={String(locationId)}
+            onValueChange={(val) => handleLocationChange(val)}
           >
-            {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>
-                {loc.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="px-2.5 py-1.5 h-8 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-750 dark:text-white focus:outline-none shadow-sm transition-colors w-full sm:w-[160px] flex-1 sm:flex-none pr-8 shrink-0 flex items-center justify-between">
+              <SelectValue placeholder="Select Location" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 rounded-lg shadow-lg text-xs font-semibold">
+              {locations.map((loc) => (
+                <SelectItem key={loc.id} value={String(loc.id)}>
+                  {loc.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         ) : (
-          <div className="bg-gray-100 dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 text-gray-650 dark:text-gray-300 text-xs rounded-lg px-3 py-1.5 shadow-sm min-w-[140px] flex justify-between items-center cursor-not-allowed font-bold">
+          <div className="bg-gray-100 dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 text-gray-650 dark:text-gray-300 text-xs rounded-lg px-3 py-1.5 shadow-sm w-full sm:w-[160px] flex-1 sm:flex-none flex justify-between items-center cursor-not-allowed font-bold">
             <span>{locationName}</span>
             <i className="fa-solid fa-lock text-[10px] text-gray-400 ml-2"></i>
           </div>

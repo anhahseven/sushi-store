@@ -7,6 +7,13 @@ import { ConversationVolumeChart } from "@/components/conversation-volume-chart"
 import { OrderStatusDonut } from "@/components/order-status-donut";
 import { LocationSalesChart } from "@/components/location-sales-chart";
 import { AvgOrderValueChart } from "@/components/avg-order-value-chart";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ChartItem {
   day: string;
@@ -65,22 +72,26 @@ export const AdminDashboard: React.FC = () => {
   useEffect(() => {
     if (data?.locations) {
       setHeaderContent(
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <label className="hidden sm:inline text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider">
             Location:
           </label>
-          <select
+          <Select
             value={filterLocation}
-            onChange={(e) => setFilterLocation(e.target.value)}
-            className="px-2.5 py-1.5 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-700 dark:text-white focus:outline-none shadow-sm transition-colors"
+            onValueChange={(val) => setFilterLocation(val)}
           >
-            <option value="All">All Locations</option>
-            {data.locations.map((loc) => (
-              <option key={loc.id} value={loc.name}>
-                {loc.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="px-2.5 py-1.5 h-8 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#18181b] rounded-lg text-xs font-semibold text-gray-750 dark:text-white focus:outline-none shadow-sm transition-colors w-full sm:w-[160px] flex-1 sm:flex-none pr-8 shrink-0 flex items-center justify-between">
+              <SelectValue placeholder="Select Location" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-zinc-800 rounded-lg shadow-lg text-xs font-semibold">
+              <SelectItem value="All">All Locations</SelectItem>
+              {data.locations.map((loc) => (
+                <SelectItem key={loc.id} value={loc.name}>
+                  {loc.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       );
     }

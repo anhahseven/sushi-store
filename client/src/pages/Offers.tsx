@@ -89,7 +89,7 @@ export const Offers: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 mt-36 font-sans pb-16 min-h-screen">
+    <div className="max-w-7xl mx-auto px-6 mt-10 lg:mt-36 font-sans pb-16 min-h-screen">
       <section className="mb-6 md:mb-10">
         <div className="text-center mb-10">
           <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">

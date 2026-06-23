@@ -91,7 +91,7 @@ export const Profile: React.FC = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto px-6 mt-36 mb-20 font-sans min-h-[50vh]">
+    <div className="max-w-xl mx-auto px-6 mt-10 lg:mt-36 mb-20 font-sans min-h-[50vh]">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4 border-b border-gray-100 dark:border-gray-700 pb-4">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Account Settings</h1>
