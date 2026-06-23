@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import InkReveal from "../components/ui/ink-reveal";
-import { Mail, Lock, ArrowLeft } from "lucide-react";
+import { Mail, Lock, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import Swal from "sweetalert2";
 
@@ -23,9 +23,14 @@ export const Auth: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [successMsg, setSuccessMsg] = useState<string>("");
+
+  React.useEffect(() => {
+    setShowPassword(false);
+  }, [isSignUp]);
 
   const API_BASE = import.meta.env.VITE_API_URL || "";
 
@@ -179,14 +184,21 @@ export const Auth: React.FC = () => {
             <div className="relative w-full mb-4">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Choose Password"
                 autoComplete="new-password"
                 required
-                className="bg-gray-50/50 border border-gray-200 hover:border-orange-300 focus:border-orange-500 pl-12 pr-4 py-3 w-full rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-100 transition duration-300"
+                className="bg-gray-50/50 border border-gray-200 hover:border-orange-300 focus:border-orange-500 pl-12 pr-12 py-3 w-full rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-100 transition duration-300"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none flex items-center justify-center"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
 
             <button
@@ -258,14 +270,21 @@ export const Auth: React.FC = () => {
             <div className="relative w-full mb-3">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 autoComplete="current-password"
                 required
-                className="bg-gray-50/50 border border-gray-200 hover:border-orange-300 focus:border-orange-500 pl-12 pr-4 py-3 w-full rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-100 transition duration-300"
+                className="bg-gray-50/50 border border-gray-200 hover:border-orange-300 focus:border-orange-500 pl-12 pr-12 py-3 w-full rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-100 transition duration-300"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none flex items-center justify-center"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
 
             <a href="#" className="text-xs text-gray-400 mb-4 hover:text-orange-500 transition hover:underline self-end">
