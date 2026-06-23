@@ -28,6 +28,18 @@ export default function setupPassport() {
         });
       }
 
+      if (cleanUsername === "demo@sushistore.com") {
+        if (password === "demo1234") {
+          return cb(null, {
+            id: "env-demo-user",
+            email: "demo@sushistore.com",
+            role: "demo",
+          });
+        } else {
+          return cb(null, false, { message: "Invalid password" });
+        }
+      }
+
       try {
         const result = await pool.query("SELECT * FROM users WHERE email = $1 ", [cleanUsername]);
         
