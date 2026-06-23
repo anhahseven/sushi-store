@@ -83,9 +83,9 @@ router.get("/auth/google", passport.authenticate("google", { scope: ["profile", 
 router.get("/auth/google/secrets", passport.authenticate("google", { failureRedirect: "/login" }), (req, res) => {
   const role = req.user.role;
   if (["admin", "manager", "store_manager"].includes(role)) {
-    res.redirect("/admin/dashboard");
+    res.redirect("/admin/dashboard?loginSuccess=true");
   } else {
-    res.redirect("/");
+    res.redirect("/?loginSuccess=true");
   }
 });
 

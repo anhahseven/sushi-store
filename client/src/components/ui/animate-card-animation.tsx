@@ -58,9 +58,9 @@ const cardData: Card[] = [
 
 function CardContent({ card }: { card: Card }) {
   return (
-    <div className="flex h-full w-full flex-col bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-2xl shadow-xl overflow-hidden group">
+    <div className="flex h-full w-full flex-col bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-2xl shadow-xl overflow-hidden group hero-card-content">
       {/* Image Container */}
-      <div className="relative w-full h-[180px] xs:h-[200px] sm:h-[260px] md:h-[280px] overflow-hidden">
+      <div className="relative w-full hero-card-img h-[180px] xs:h-[200px] sm:h-[260px] md:h-[280px] overflow-hidden">
         <img
           src={card.image}
           alt={card.title}
@@ -78,8 +78,8 @@ function CardContent({ card }: { card: Card }) {
       </div>
       
       {/* Info Section */}
-      <div className="flex flex-col justify-between flex-1 p-4 sm:p-6 bg-white dark:bg-gray-950">
-        <div className="flex flex-col gap-1 sm:gap-2">
+      <div className="flex flex-col justify-between flex-1 p-4 sm:p-6 bg-white dark:bg-gray-950 hero-card-info">
+        <div className="flex flex-col gap-1 sm:gap-2 hero-card-title-desc">
           <h3 className="font-extrabold text-sm sm:text-lg md:text-xl text-gray-900 dark:text-white leading-tight">
             {card.title}
           </h3>
@@ -112,65 +112,66 @@ export default function AnimatedCardStack() {
     gsap.registerPlugin(ScrollTrigger)
 
     const element = containerRef.current
-    if (!element) return
+    if (!element || !wrapperRef.current) return
 
-    const trigger = ScrollTrigger.create({
-      trigger: element,
-      start: "top top",
-      end: "+=2400",
-      pin: true,
-      scrub: true,
-      onUpdate: (self) => {
-        const progress = self.progress
-        const totalCards = cardData.length
-        
-        // 1. Navbar Visibility: hide when inside card stages (progress < 0.82), show when zooming out at the end
-        if (progress < 0.82) {
-          document.body.classList.add("hero-nav-hidden")
-        } else {
-          document.body.classList.remove("hero-nav-hidden")
-        }
-
-        // 2. Cycle cards within first 80% scroll progress (0.0 -> 0.8)
-        const cardProgress = Math.min(progress / 0.8, 1)
-        const rawIndex = Math.floor(cardProgress * totalCards)
-        const targetIndex = Math.max(0, Math.min(rawIndex, totalCards - 1))
-        
-        setActiveIndex((prev) => {
-          if (prev !== targetIndex) {
-            return targetIndex
-          }
-          return prev
-        })
-
-        // 3. Zoom out effect in the final 20% scroll progress (0.8 -> 1.0)
-        // Direct DOM manipulation bypasses React render loops on scroll for 60fps performance
-        if (progress > 0.8) {
-          const zoomProgress = (progress - 0.8) / 0.2
-          const targetScale = 1 - zoomProgress * 0.08 // scale down to 0.92
-          const targetRadius = `${zoomProgress * 24}px` // rounded corners up to 24px
-          
-          if (wrapperRef.current) {
-            gsap.set(wrapperRef.current, {
-              scale: targetScale,
-              borderRadius: targetRadius
-            })
-            wrapperRef.current.classList.add("hero-zoomed-out")
-          }
-        } else {
-          if (wrapperRef.current) {
-            gsap.set(wrapperRef.current, {
-              scale: 1,
-              borderRadius: "0px"
-            })
-            wrapperRef.current.classList.remove("hero-zoomed-out")
-          }
-        }
-      }
+    // Set starting state with GSAP to avoid React inline style clashes
+    gsap.set(wrapperRef.current, {
+      scale: 1,
+      borderRadius: "0px"
     })
 
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: element,
+          start: "top top",
+          end: "+=2400",
+          pin: true,
+          scrub: true,
+          onUpdate: (self) => {
+            const progress = self.progress
+            const totalCards = cardData.length
+            
+            // 1. Navbar Visibility: hide when inside card stages (progress < 0.82), show when zooming out at the end
+            if (progress < 0.82) {
+              document.body.classList.add("hero-nav-hidden")
+            } else {
+              document.body.classList.remove("hero-nav-hidden")
+            }
+
+            // 2. Cycle cards within first 80% scroll progress (0.0 -> 0.8)
+            const cardProgress = Math.min(progress / 0.8, 1)
+            const rawIndex = Math.floor(cardProgress * totalCards)
+            const targetIndex = Math.max(0, Math.min(rawIndex, totalCards - 1))
+            
+            setActiveIndex((prev) => {
+              if (prev !== targetIndex) {
+                return targetIndex
+              }
+              return prev
+            })
+
+            // 3. Class Toggle for borders and shadows
+            if (progress > 0.8) {
+              wrapperRef.current?.classList.add("hero-zoomed-out")
+            } else {
+              wrapperRef.current?.classList.remove("hero-zoomed-out")
+            }
+          }
+        }
+      })
+
+      // Add smooth zoom out tween to timeline
+      tl.to(wrapperRef.current, {
+        scale: 0.92,
+        borderRadius: "24px",
+        ease: "none",
+        duration: 0.2
+      }, 0.8)
+    }, containerRef) // scope to container
+
     return () => {
-      trigger.kill()
+      ctx.revert()
       document.body.classList.remove("hero-nav-hidden")
     }
   }, [])
@@ -222,16 +223,155 @@ export default function AnimatedCardStack() {
         .dark .hero-zoomed-out {
           border-color: rgba(31, 41, 55, 0.8) !important;
         }
+        
+        /* 📱 Small Viewport Height Responsiveness - Proportional Scaling */
+        @media (max-height: 850px) and (max-width: 1023px) and (min-height: 551px) {
+          .hero-main-container {
+            transform: scale(0.85);
+            transform-origin: center center;
+            will-change: transform;
+            gap: 0.5rem !important;
+          }
+          .hero-card-col {
+            height: 280px !important;
+          }
+          .hero-card-stack-inner {
+            width: 240px !important;
+            height: 280px !important;
+          }
+          .hero-card-img {
+            height: 110px !important;
+          }
+          .hero-card-info {
+            padding: 0.75rem !important;
+          }
+        }
+
+        @media (max-height: 700px) and (max-width: 1023px) and (min-height: 551px) {
+          .hero-main-container {
+            transform: scale(0.75);
+            transform-origin: center center;
+          }
+        }
+
+        @media (max-height: 580px) and (max-width: 1023px) and (min-height: 551px) {
+          .hero-main-container {
+            transform: scale(0.65);
+            transform-origin: center center;
+          }
+          .hero-text-col p {
+            display: none !important;
+          }
+        }
+
+        /* 📱 Small Viewport Height - Horizontal Layout (Landscape/Wide Viewports) */
+        @media (max-height: 550px) and (min-width: 480px) {
+          .hero-main-container {
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 1.5rem !important;
+            transform: none !important;
+          }
+          .hero-text-col {
+            width: 48% !important;
+            order: 1 !important;
+            gap: 0.25rem !important;
+            height: auto !important;
+          }
+          .hero-card-col {
+            width: 48% !important;
+            order: 2 !important;
+            height: 250px !important;
+          }
+          .hero-card-stack-inner {
+            width: 200px !important;
+            height: 230px !important;
+          }
+          .hero-card-img {
+            height: 90px !important;
+          }
+          .hero-card-info {
+            padding: 0.5rem 0.75rem !important;
+          }
+          .hero-card-info h3 {
+            font-size: 0.85rem !important;
+          }
+          .hero-card-info p {
+            font-size: 0.7rem !important;
+            line-clamp: 2 !important;
+          }
+          .hero-text-col h2 {
+            font-size: 1.25rem !important;
+            line-height: 1.2 !important;
+          }
+          .hero-text-col p {
+            font-size: 0.75rem !important;
+            display: -webkit-box;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+          .hero-text-col .mt-2 {
+            margin-top: 0.25rem !important;
+          }
+        }
+
+        /* 📱 Small Viewport Height - Vertical Layout (Very Narrow Portrait) */
+        @media (max-height: 550px) and (max-width: 479px) {
+          .hero-main-container {
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+            transform: scale(0.85) !important;
+            transform-origin: center center;
+          }
+          .hero-card-col {
+            height: 200px !important;
+          }
+          .hero-card-stack-inner {
+            width: 170px !important;
+            height: 190px !important;
+          }
+          .hero-card-img {
+            height: 70px !important;
+          }
+          .hero-text-col h2 {
+            font-size: 1.1rem !important;
+          }
+          .hero-text-col p {
+            display: none !important;
+          }
+          .hero-text-col {
+            gap: 0.25rem !important;
+          }
+        }
+
+        /* 💻 Small height responsiveness for desktops */
+        @media (max-height: 800px) and (min-width: 1024px) {
+          .hero-main-container {
+            transform: scale(0.9);
+            transform-origin: center center;
+            will-change: transform;
+          }
+        }
+        @media (max-height: 700px) and (min-width: 1024px) {
+          .hero-main-container {
+            transform: scale(0.78);
+            transform-origin: center center;
+          }
+        }
+        @media (max-height: 600px) and (min-width: 1024px) {
+          .hero-main-container {
+            transform: scale(0.65);
+            transform-origin: center center;
+          }
+        }
       `}</style>
 
       {/* Inner Scalable Card Wrapper */}
       <div
         ref={wrapperRef}
         className="w-full h-full bg-transparent flex items-center relative overflow-hidden border border-transparent hero-wrapper-transition"
-        style={{
-          transform: "scale(1)",
-          borderRadius: "0px",
-        }}
       >
         {/* Background Japanese Elements */}
         <div className="absolute inset-0 pointer-events-none select-none overflow-hidden opacity-10 dark:opacity-[0.03]">
@@ -239,9 +379,9 @@ export default function AnimatedCardStack() {
           <div className="absolute -bottom-1/4 -right-1/4 w-[600px] h-[600px] rounded-full border-[80px] border-orange-500" />
         </div>
 
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12 z-10">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12 z-10 hero-main-container">
           {/* Left column: Text content */}
-          <div className="flex flex-col justify-center gap-4 sm:gap-6 w-full lg:w-[48%] h-[35%] lg:h-auto text-left order-2 lg:order-1">
+          <div className="flex flex-col justify-center gap-4 sm:gap-6 w-full lg:w-[48%] h-[35%] lg:h-auto text-left order-2 lg:order-1 hero-text-col shrink-0">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeIndex}
@@ -323,8 +463,8 @@ export default function AnimatedCardStack() {
           </div>
 
           {/* Right column: Card stack */}
-          <div className="relative flex items-center justify-center w-full lg:w-[48%] h-[50%] lg:h-[550px] order-1 lg:order-2">
-            <div className="relative w-[290px] h-[340px] xs:w-[320px] xs:h-[370px] sm:w-[380px] sm:h-[420px] md:w-[440px] md:h-[450px]">
+          <div className="relative flex items-center justify-center w-full lg:w-[48%] h-[50%] lg:h-[550px] order-1 lg:order-2 hero-card-col shrink-0">
+            <div className="relative hero-card-stack-inner w-[290px] h-[340px] xs:w-[320px] xs:h-[370px] sm:w-[380px] sm:h-[420px] md:w-[440px] md:h-[450px]">
               {cardData.map((card, index) => {
                 const animatedStyles = getCardStyles(index, activeIndex)
                 return (

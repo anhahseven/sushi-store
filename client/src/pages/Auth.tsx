@@ -29,6 +29,16 @@ export const Auth: React.FC = () => {
 
   const API_BASE = import.meta.env.VITE_API_URL || "";
 
+  React.useEffect(() => {
+    if (errorMsg || successMsg) {
+      const timer = setTimeout(() => {
+        setErrorMsg("");
+        setSuccessMsg("");
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMsg, successMsg]);
+
 
 
   const handleAuth = async (e: React.FormEvent, endpoint: string) => {

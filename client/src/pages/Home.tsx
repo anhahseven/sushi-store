@@ -75,6 +75,16 @@ export function Home() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Recalculate ScrollTrigger positions once dynamic products render
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => {
+        ScrollTrigger.refresh();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, products]);
+
   // 1. GSAP Scroll Animation (Kept for other potential elements, but cleaned up feature-card logic)
   useEffect(() => {
     let ctx = gsap.context(() => {

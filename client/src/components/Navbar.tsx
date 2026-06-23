@@ -35,6 +35,17 @@ export const Navbar: React.FC = () => {
     return () => window.removeEventListener("click", handleOutsideClick);
   }, []);
 
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
@@ -105,7 +116,8 @@ export const Navbar: React.FC = () => {
   const currentPath = location.pathname;
 
   return (
-    <nav className="fixed top-0 w-full z-50 transition-all duration-300 backdrop-blur-md bg-white/70 dark:bg-gray-950/70 border-b border-gray-200/30 dark:border-gray-800/30 shadow-sm">
+    <>
+      <nav className="fixed top-0 w-full z-50 transition-all duration-300 backdrop-blur-md bg-white/70 dark:bg-gray-950/70 border-b border-gray-200/30 dark:border-gray-800/30 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 lg:px-8 lg:py-4">
         <div className="flex justify-between items-center">
           {/* Logo */}
@@ -197,7 +209,7 @@ export const Navbar: React.FC = () => {
 
             {/* Profile Dropdown */}
             {isAuthenticated && user ? (
-              <div className="relative" ref={profileRef}>
+              <div className="relative hidden lg:block" ref={profileRef}>
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-orange-100 dark:hover:bg-orange-900/30 text-gray-700 dark:text-orange-400 transition-all focus:outline-none"
@@ -306,80 +318,343 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
       </div>
+    </nav>
 
-      {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-slate-50/95 dark:bg-[#030712]/95 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 absolute w-full left-0 shadow-lg transition-all duration-350">
-          <div className="flex flex-col p-4 space-y-2">
+    {/* Animated Mobile Menu Drawer */}
+    <div
+      className={`lg:hidden fixed inset-0 z-[9999] transition-opacity duration-300 ${
+        mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      }`}
+    >
+        {/* Backdrop glass blur */}
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="absolute inset-0 bg-gray-900/40 backdrop-blur-md"
+        />
+
+        {/* Drawer Panel */}
+        <div
+          className={`fixed top-0 left-0 bottom-0 h-full w-[300px] max-w-[85vw] bg-white dark:bg-gray-950 shadow-2xl flex flex-col justify-between p-6 pt-24 transition-transform duration-300 ease-out transform ${
+            mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          {/* Top Panel Brand & User Profile */}
+          <div className="absolute top-6 left-6 flex justify-between items-center w-[calc(100%-48px)]">
+            {isAuthenticated && user ? (
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm font-bold text-base">
+                  {user.email[0].toUpperCase()}
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-sm font-bold text-gray-900 truncate max-w-[150px]">
+                    {user.email.split("@")[0]}
+                  </span>
+                  <span className="text-[9px] uppercase tracking-wider font-extrabold text-orange-600">
+                    {user.role}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <span className="text-xl font-extrabold text-gray-900 dark:text-orange-400">
+                Murakami<span className="text-orange-500">.</span>
+              </span>
+            )}
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white"
+            >
+              <i className="fa-solid fa-xmark text-xl"></i>
+            </button>
+          </div>
+
+          {/* Scrollable Links Section */}
+          <div className="flex-1 overflow-y-auto my-4 pr-1.5 flex flex-col gap-6 scrollbar-thin scrollbar-thumb-gray-200/60 dark:scrollbar-thumb-gray-850/60">
+            {/* 1. Client / Customer Links (Home, Menu, About, Offers, Locations) */}
             {(!user || !["staff", "cashier"].includes(user.role.trim().toLowerCase())) && (
               <>
                 <Link
                   to="/"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="mobile-link flex items-center p-3 rounded-lg font-semibold dark:text-orange-300 text-gray-700 hover:bg-orange-50 dark:hover:bg-orange-950"
+                  className={`flex items-center gap-4 text-xl font-bold transition-all duration-300 ${
+                    currentPath === "/"
+                      ? "text-orange-500 translate-x-2"
+                      : "text-gray-600 hover:text-gray-900 hover:translate-x-1"
+                  }`}
+                  style={{
+                    transitionDelay: mobileMenuOpen ? "100ms" : "0ms",
+                    opacity: mobileMenuOpen ? 1 : 0,
+                    transform: mobileMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                    transition: "transform 0.4s ease, opacity 0.4s ease"
+                  }}
                 >
-                  <i className="fa-solid fa-house w-6 text-center text-gray-400"></i> Home
+                  <span className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm">
+                    <i className="fa-solid fa-house text-sm"></i>
+                  </span>
+                  <span>Home</span>
                 </Link>
+
                 <Link
                   to="/menu"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="mobile-link flex items-center p-3 rounded-lg font-semibold dark:text-orange-300 text-gray-700 hover:bg-orange-50 dark:hover:bg-orange-950"
+                  className={`flex items-center gap-4 text-xl font-bold transition-all duration-300 ${
+                    currentPath === "/menu"
+                      ? "text-orange-500 translate-x-2"
+                      : "text-gray-600 hover:text-gray-900 hover:translate-x-1"
+                  }`}
+                  style={{
+                    transitionDelay: mobileMenuOpen ? "150ms" : "0ms",
+                    opacity: mobileMenuOpen ? 1 : 0,
+                    transform: mobileMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                    transition: "transform 0.4s ease, opacity 0.4s ease"
+                  }}
                 >
-                  <i className="fa-solid fa-utensils w-6 text-center text-gray-400"></i> Menu
+                  <span className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm">
+                    <i className="fa-solid fa-utensils text-sm"></i>
+                  </span>
+                  <span>Menu</span>
                 </Link>
+
                 <Link
                   to="/about"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="mobile-link flex items-center p-3 rounded-lg font-semibold dark:text-orange-300 text-gray-700 hover:bg-orange-50 dark:hover:bg-orange-950"
+                  className={`flex items-center gap-4 text-xl font-bold transition-all duration-300 ${
+                    currentPath === "/about"
+                      ? "text-orange-500 translate-x-2"
+                      : "text-gray-600 hover:text-gray-900 hover:translate-x-1"
+                  }`}
+                  style={{
+                    transitionDelay: mobileMenuOpen ? "200ms" : "0ms",
+                    opacity: mobileMenuOpen ? 1 : 0,
+                    transform: mobileMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                    transition: "transform 0.4s ease, opacity 0.4s ease"
+                  }}
                 >
-                  <i className="fa-solid fa-circle-info w-6 text-center text-gray-400"></i> About
+                  <span className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm">
+                    <i className="fa-solid fa-circle-info text-sm"></i>
+                  </span>
+                  <span>About</span>
                 </Link>
+
                 <Link
                   to="/offers"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="mobile-link flex items-center p-3 rounded-lg font-semibold dark:text-orange-300 text-gray-700 hover:bg-orange-50 dark:hover:bg-orange-950"
+                  className={`flex items-center gap-4 text-xl font-bold transition-all duration-300 ${
+                    currentPath === "/offers"
+                      ? "text-orange-500 translate-x-2"
+                      : "text-gray-600 hover:text-gray-900 hover:translate-x-1"
+                  }`}
+                  style={{
+                    transitionDelay: mobileMenuOpen ? "250ms" : "0ms",
+                    opacity: mobileMenuOpen ? 1 : 0,
+                    transform: mobileMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                    transition: "transform 0.4s ease, opacity 0.4s ease"
+                  }}
                 >
-                  <i className="fa-solid fa-tag w-6 text-center text-gray-400"></i> Offers
+                  <span className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm">
+                    <i className="fa-solid fa-tag text-sm"></i>
+                  </span>
+                  <span>Offers</span>
                 </Link>
+
                 <Link
                   to="/location"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="mobile-link flex items-center p-3 rounded-lg font-semibold dark:text-orange-300 text-gray-700 hover:bg-orange-50 dark:hover:bg-orange-950"
+                  className={`flex items-center gap-4 text-xl font-bold transition-all duration-300 ${
+                    currentPath === "/location" || currentPath === "/locations"
+                      ? "text-orange-500 translate-x-2"
+                      : "text-gray-600 hover:text-gray-900 hover:translate-x-1"
+                  }`}
+                  style={{
+                    transitionDelay: mobileMenuOpen ? "300ms" : "0ms",
+                    opacity: mobileMenuOpen ? 1 : 0,
+                    transform: mobileMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                    transition: "transform 0.4s ease, opacity 0.4s ease"
+                  }}
                 >
-                  <i className="fa-solid fa-map-location-dot w-6 text-center text-gray-400"></i>{" "}
-                  Locations
+                  <span className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm">
+                    <i className="fa-solid fa-map-location-dot text-sm"></i>
+                  </span>
+                  <span>Locations</span>
                 </Link>
-                {!isAuthenticated && (
-                  <>
-                    <div className="border-t border-gray-100 dark:border-gray-800 my-2 pt-2"></div>
-                    <Link
-                      to="/login"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="mobile-link flex items-center p-3 rounded-lg font-semibold dark:text-orange-300 text-gray-700 hover:bg-orange-50 dark:hover:bg-orange-950"
-                    >
-                      <i className="fa-solid fa-right-to-bracket w-6 text-center text-gray-400"></i>{" "}
-                      Login
-                    </Link>
-                  </>
-                )}
               </>
             )}
 
-            {isAuthenticated && isAdminOrManager && (
+            {/* 2. Login button (if Guest) */}
+            {!isAuthenticated && (
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-4 text-xl font-bold text-gray-600 hover:text-gray-900 hover:translate-x-1 transition-all duration-300"
+                style={{
+                  transitionDelay: mobileMenuOpen ? "350ms" : "0ms",
+                  opacity: mobileMenuOpen ? 1 : 0,
+                  transform: mobileMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                  transition: "transform 0.4s ease, opacity 0.4s ease"
+                }}
+              >
+                <span className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm">
+                  <i className="fa-solid fa-right-to-bracket text-sm"></i>
+                </span>
+                <span>Login</span>
+              </Link>
+            )}
+
+            {/* 3. Authenticated Profile & Role Options */}
+            {isAuthenticated && user && (
               <>
-                <div className="border-t border-gray-100 dark:border-gray-800 my-2 pt-2"></div>
-                <Link
-                  to="/admin/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="mobile-link flex items-center p-3 rounded-lg font-semibold dark:text-orange-300 text-gray-700 hover:bg-orange-50 dark:hover:bg-orange-950"
+                <div className="border-t border-gray-150/80 my-1"></div>
+
+                {/* Profile (Customer only) */}
+                {user.role?.trim().toLowerCase() === "user" && (
+                  <>
+                    <Link
+                      to="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-4 text-xl font-bold transition-all duration-300 ${
+                        currentPath === "/profile"
+                          ? "text-orange-500 translate-x-2"
+                          : "text-gray-600 hover:text-gray-900 hover:translate-x-1"
+                      }`}
+                      style={{
+                        transitionDelay: mobileMenuOpen ? "350ms" : "0ms",
+                        opacity: mobileMenuOpen ? 1 : 0,
+                        transform: mobileMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                        transition: "transform 0.4s ease, opacity 0.4s ease"
+                      }}
+                    >
+                      <span className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm">
+                        <i className="fa-solid fa-user text-sm"></i>
+                      </span>
+                      <span>Profile</span>
+                    </Link>
+
+                    <Link
+                      to="/orders"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-4 text-xl font-bold transition-all duration-300 ${
+                        currentPath === "/orders"
+                          ? "text-orange-500 translate-x-2"
+                          : "text-gray-600 hover:text-gray-900 hover:translate-x-1"
+                      }`}
+                      style={{
+                        transitionDelay: mobileMenuOpen ? "400ms" : "0ms",
+                        opacity: mobileMenuOpen ? 1 : 0,
+                        transform: mobileMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                        transition: "transform 0.4s ease, opacity 0.4s ease"
+                      }}
+                    >
+                      <span className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm">
+                        <i className="fa-solid fa-receipt text-sm"></i>
+                      </span>
+                      <span>Orders</span>
+                    </Link>
+                  </>
+                )}
+
+                {/* Dashboard (Admin/Manager) */}
+                {["manager", "admin", "store_manager"].includes(user.role?.trim().toLowerCase()) && (
+                  <Link
+                    to="/admin/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-4 text-xl font-bold transition-all duration-300 ${
+                      currentPath === "/admin/dashboard"
+                        ? "text-orange-500 translate-x-2"
+                        : "text-gray-600 hover:text-gray-900 hover:translate-x-1"
+                    }`}
+                    style={{
+                      transitionDelay: mobileMenuOpen ? "350ms" : "0ms",
+                      opacity: mobileMenuOpen ? 1 : 0,
+                      transform: mobileMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                      transition: "transform 0.4s ease, opacity 0.4s ease"
+                    }}
+                  >
+                    <span className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm">
+                      <i className="fa-solid fa-chart-pie text-sm"></i>
+                    </span>
+                    <span>Dashboard</span>
+                  </Link>
+                )}
+
+                {/* POS Menu (Staff/Manager/Admin) */}
+                {["manager", "admin", "store_manager", "staff"].includes(user.role?.trim().toLowerCase()) && (
+                  <Link
+                    to="/staff/menu"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-4 text-xl font-bold transition-all duration-300 ${
+                      currentPath === "/staff/menu"
+                        ? "text-orange-500 translate-x-2"
+                        : "text-gray-600 hover:text-gray-900 hover:translate-x-1"
+                    }`}
+                    style={{
+                      transitionDelay: mobileMenuOpen ? "400ms" : "0ms",
+                      opacity: mobileMenuOpen ? 1 : 0,
+                      transform: mobileMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                      transition: "transform 0.4s ease, opacity 0.4s ease"
+                    }}
+                  >
+                    <span className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm">
+                      <i className="fa-solid fa-utensils text-sm"></i>
+                    </span>
+                    <span>POS Menu</span>
+                  </Link>
+                )}
+
+                {/* POS Checkout (Cashier/Manager/Admin) */}
+                {["manager", "admin", "store_manager", "cashier"].includes(user.role?.trim().toLowerCase()) && (
+                  <Link
+                    to="/admin/orders"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-4 text-xl font-bold transition-all duration-300 ${
+                      currentPath === "/admin/orders"
+                        ? "text-orange-500 translate-x-2"
+                        : "text-gray-600 hover:text-gray-900 hover:translate-x-1"
+                    }`}
+                    style={{
+                      transitionDelay: mobileMenuOpen ? "450ms" : "0ms",
+                      opacity: mobileMenuOpen ? 1 : 0,
+                      transform: mobileMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                      transition: "transform 0.4s ease, opacity 0.4s ease"
+                    }}
+                  >
+                    <span className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm">
+                      <i className="fa-solid fa-cash-register text-sm"></i>
+                    </span>
+                    <span>POS Checkout</span>
+                  </Link>
+                )}
+
+                <div className="border-t border-gray-150/80 my-1"></div>
+
+                {/* Logout Button */}
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center gap-4 text-xl font-bold text-red-600 hover:text-red-800 hover:translate-x-1 transition-all duration-300 text-left w-full"
+                  style={{
+                    transitionDelay: mobileMenuOpen ? "500ms" : "0ms",
+                    opacity: mobileMenuOpen ? 1 : 0,
+                    transform: mobileMenuOpen ? "translateX(0)" : "translateX(-20px)",
+                    transition: "transform 0.4s ease, opacity 0.4s ease"
+                  }}
                 >
-                  <i className="fa-solid fa-chart-pie w-6 text-center text-gray-400"></i> Dashboard
-                </Link>
+                  <span className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-600 shadow-sm">
+                    <i className="fa-solid fa-right-from-bracket text-sm"></i>
+                  </span>
+                  <span>Logout</span>
+                </button>
               </>
             )}
           </div>
+
+          {/* Bottom Branding / Info inside Drawer */}
+          <div className="text-center text-xs text-gray-400 dark:text-gray-600 mt-auto border-t border-gray-100 dark:border-gray-900 pt-4">
+            <p className="font-semibold">Murakami Sushi Store</p>
+            <p className="mt-1 font-light">&copy; 2026 Murakami. All rights reserved.</p>
+          </div>
         </div>
-      )}
-    </nav>
+      </div>
+    </>
   );
 };

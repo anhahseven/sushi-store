@@ -26,8 +26,9 @@ pool.on("error", (err) => {
   console.error("⚠️ Unexpected error on idle database client:", err);
 });
 
+// Test connection by running a quick query (automatically acquires and releases client)
 pool
-  .connect()
+  .query("SELECT 1")
   .then(() => console.log("✅ Database connected successfully"))
   .catch((err) => console.error("❌ Database connection error:", err));
 
