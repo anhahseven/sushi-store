@@ -89,12 +89,12 @@ export const Auth: React.FC = () => {
 
       {/* Notification Toast */}
       {(errorMsg || successMsg) && (
-        <div className="fixed top-5 left-5 z-[9999] flex flex-col gap-3 pointer-events-none">
+        <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none">
           <div
             className={`${
               errorMsg ? "bg-red-500" : "bg-green-500"
             } text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border-2 border-white/20`}
-            style={{ animation: "slideInLeft 0.5s forwards" }}
+            style={{ animation: "slideInRight 0.5s forwards" }}
           >
             <div className="text-2xl">
               <i
@@ -336,8 +336,8 @@ export const Auth: React.FC = () => {
         .right-panel-active .overlay-container {
           transform: translateX(-100%);
         }
-        @keyframes slideInLeft {
-          from { transform: translateX(-100%); opacity: 0; }
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
         }
       `}</style>
