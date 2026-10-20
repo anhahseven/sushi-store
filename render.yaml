@@ -31,16 +31,23 @@ services:
           type: web
           name: sushi-backend
           property: host
+<<<<<<< HEAD
       - key: ADMIN_EMAIL
         value: "admin@opulent.com,boss@opulent.com"
       - key: ADMIN_PASSWORD
         value: "admin123,boss123"
+=======
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
 
   # 2. React Vite Static Site Frontend
   - type: web
     name: sushi-frontend
     runtime: static
+<<<<<<< HEAD
     buildCommand: cd client && npm install --include=dev && npm run build
+=======
+    buildCommand: cd client && npm install && npm run build
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
     staticPublishPath: client/dist
     envVars:
       - key: VITE_API_URL

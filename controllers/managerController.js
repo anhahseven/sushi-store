@@ -4,13 +4,50 @@ import { checkAuthenticated, checkRole } from "../middleware/auth.js";
 
 const router = express.Router();
 
+<<<<<<< HEAD
 // Submit Daily Stock count (API)
+=======
+router.get("/manager/daily-stock", checkAuthenticated, checkRole(["store_manager", "admin", "manager"]), async (req, res) => {
+  try {
+    let locId = req.user.assigned_location_id ? String(req.user.assigned_location_id) : null;
+    if (["admin", "manager"].includes(req.user.role)) {
+      if (req.query.location) locId = String(req.query.location);
+      else if (!locId) {
+        const firstLoc = await pool.query("SELECT id FROM locations ORDER BY id ASC LIMIT 1");
+        if (firstLoc.rows.length > 0) locId = String(firstLoc.rows[0].id);
+      }
+    }
+    if (!locId) return res.render("error", { message: "Error: No valid location found.", user: req.user });
+    
+    const locRes = await pool.query("SELECT name FROM locations WHERE id = $1", [locId]);
+    if (locRes.rows.length === 0) return res.send("Error: Location ID not found.");
+    
+    const allLocs = await pool.query("SELECT * FROM locations ORDER BY id ASC");
+    const dateQuery = req.query.date || new Date().toISOString().split("T")[0];
+    const checkRes = await pool.query("SELECT * FROM daily_inventory_logs WHERE location_name = $1 AND report_date = $2", [locRes.rows[0].name, dateQuery]);
+    const masterRes = await pool.query("SELECT * FROM stocks ORDER BY category, name ASC");
+
+    res.render("manager/daily_stock.ejs", {
+      title: "Daily Stock Count", layout: "layout", locationName: locRes.rows[0].name,
+      locations: allLocs.rows, masterItems: masterRes.rows, alreadySubmitted: checkRes.rows.length > 0,
+      user: req.user, currentLocationId: locId, query: { date: dateQuery, location: locId },
+    });
+  } catch (err) {
+    res.status(500).send("Server Error: " + err.message);
+  }
+});
+
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
 router.post("/api/manager/daily-stock", checkAuthenticated, checkRole(["store_manager", "admin", "manager"]), async (req, res) => {
   if (typeof req.user.id === "string" && req.user.id.startsWith("env-")) return res.status(403).json({ error: "Super Admins cannot submit stock counts." });
   const client = await pool.connect();
   try {
     let locId = req.user.assigned_location_id;
+<<<<<<< HEAD
     if (["admin", "manager", "demo"].includes(req.user.role)) {
+=======
+    if (["admin", "manager"].includes(req.user.role)) {
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
       if (req.body.location_id) locId = req.body.location_id;
       else if (!locId) {
         const firstLoc = await client.query("SELECT id FROM locations ORDER BY id ASC LIMIT 1");
@@ -37,15 +74,23 @@ router.post("/api/manager/daily-stock", checkAuthenticated, checkRole(["store_ma
   }
 });
 
+<<<<<<< HEAD
 // Delete stock count log (API)
 router.delete("/api/manager/daily-stock/:id", checkAuthenticated, async (req, res) => {
+=======
+router.delete("/api/manager/daily-stock/:id", checkAuthenticated, checkRole(["store_manager", "admin", "manager"]), async (req, res) => {
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
   try {
     const logRes = await pool.query("SELECT * FROM daily_inventory_logs WHERE id = $1", [req.params.id]);
     if (logRes.rows.length === 0) return res.status(404).json({ error: "Log not found" });
     const log = logRes.rows[0];
     const diffMinutes = (new Date() - new Date(log.created_at)) / 1000 / 60;
     
+<<<<<<< HEAD
     if (req.user.role !== "admin") {
+=======
+    if (req.user.role !== "admin" && req.user.role !== "manager") {
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
       if (req.user.id != log.user_id) return res.status(403).json({ error: "Unauthorized" });
       if (diffMinutes > 5) return res.status(403).json({ error: "Time limit exceeded." });
     }
@@ -56,12 +101,47 @@ router.delete("/api/manager/daily-stock/:id", checkAuthenticated, async (req, re
   } catch (err) { res.status(500).json({ error: "Server Error" }); }
 });
 
+<<<<<<< HEAD
 // Update daily stock count (API)
 router.post("/api/manager/daily-stock/update/:id", checkAuthenticated, async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
     for (const item of req.body.items) {
+=======
+router.get("/manager/daily-stock/edit/:id", checkAuthenticated, checkRole(["store_manager", "admin", "manager"]), async (req, res) => {
+  try {
+    const logRes = await pool.query("SELECT * FROM daily_inventory_logs WHERE id = $1", [req.params.id]);
+    if (logRes.rows.length === 0) return res.redirect("/manager/daily-stock/history");
+    const log = logRes.rows[0];
+    const diffMinutes = (new Date() - new Date(log.created_at)) / 1000 / 60;
+    
+    const isAdmin = req.user.role === "admin" || req.user.role === "manager";
+    if (!isAdmin && !log.is_unlocked && (req.user.id != log.user_id || diffMinutes > 5)) {
+      return res.send(`<script>alert('Edit time limit expired. Ask a Manager to unlock this report.'); window.location.href='/manager/daily-stock/history';</script>`);
+    }
+
+    const itemsRes = await pool.query("SELECT * FROM daily_inventory_items WHERE log_id = $1 ORDER BY category, item_name", [req.params.id]);
+    res.render("manager/edit_daily_log.ejs", { log: log, items: itemsRes.rows, title: "Edit Stock Log", layout: "layout" });
+  } catch (err) { res.redirect("/manager/daily-stock/history"); }
+});
+
+router.post("/api/manager/daily-stock/update/:id", checkAuthenticated, checkRole(["store_manager", "admin", "manager"]), async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const logRes = await client.query("SELECT * FROM daily_inventory_logs WHERE id = $1", [req.params.id]);
+    if (logRes.rows.length === 0) return res.status(404).json({ error: "Log not found" });
+    const log = logRes.rows[0];
+    const diffMinutes = (new Date() - new Date(log.created_at)) / 1000 / 60;
+    const isAdmin = req.user.role === "admin" || req.user.role === "manager";
+    
+    if (!isAdmin && !log.is_unlocked && (req.user.id != log.user_id || diffMinutes > 5)) {
+      return res.status(403).json({ error: "Edit time limit expired or report is locked." });
+    }
+
+    await client.query("BEGIN");
+    for (const item of (req.body.items || [])) {
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
       await client.query("UPDATE daily_inventory_items SET quantity = $1 WHERE id = $2 AND log_id = $3", [item.quantity, item.id, req.params.id]);
     }
     await client.query("COMMIT");
@@ -72,7 +152,10 @@ router.post("/api/manager/daily-stock/update/:id", checkAuthenticated, async (re
   } finally { client.release(); }
 });
 
+<<<<<<< HEAD
 // Toggle report lock (API)
+=======
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
 router.post("/api/manager/daily-stock/toggle-lock/:id", checkAuthenticated, checkRole(["admin", "manager"]), async (req, res) => {
   try {
     await pool.query("UPDATE daily_inventory_logs SET is_unlocked = NOT COALESCE(is_unlocked, false) WHERE id = $1", [req.params.id]);
@@ -80,11 +163,75 @@ router.post("/api/manager/daily-stock/toggle-lock/:id", checkAuthenticated, chec
   } catch (err) { res.status(500).json({ error: "Server Error" }); }
 });
 
+<<<<<<< HEAD
 // Get daily stock details (API)
 router.get("/api/manager/daily-stock", checkAuthenticated, checkRole(["store_manager", "admin", "manager"]), async (req, res) => {
   try {
     let locId = req.user.assigned_location_id ? String(req.user.assigned_location_id) : null;
     if (["admin", "manager", "demo"].includes(req.user.role)) {
+=======
+router.get("/manager/daily-stock/history", checkAuthenticated, checkRole(["store_manager", "admin", "manager"]), async (req, res) => {
+  try {
+    let queryParams = [];
+    let queryConditions = [];
+    
+    if (["admin", "manager"].includes(req.user.role) && req.query.location) {
+      queryConditions.push(`l.id = $${queryParams.length + 1}`);
+      queryParams.push(String(req.query.location));
+    } else if (req.user.assigned_location_id) {
+      const userLoc = await pool.query("SELECT name FROM locations WHERE id = $1", [req.user.assigned_location_id]);
+      if (userLoc.rows.length > 0) {
+        queryConditions.push(`dil.location_name = $${queryParams.length + 1}`);
+        queryParams.push(userLoc.rows[0].name);
+      }
+    }
+
+    if (req.query.date) {
+      queryConditions.push(`dil.report_date = $${queryParams.length + 1}`);
+      queryParams.push(req.query.date);
+    }
+
+    let sql = `SELECT dil.*, u.email FROM daily_inventory_logs dil LEFT JOIN users u ON dil.user_id = u.id::varchar LEFT JOIN locations l ON dil.location_name = l.name `;
+    if (queryConditions.length > 0) sql += " WHERE " + queryConditions.join(" AND ");
+    sql += " ORDER BY dil.report_date DESC, dil.created_at DESC";
+
+    const logsRes = await pool.query(sql, queryParams);
+    const locRes = await pool.query("SELECT * FROM locations ORDER BY id ASC");
+    res.render("manager/stock_history.ejs", { title: "Stock Count History", layout: "layout", logs: logsRes.rows, locations: locRes.rows, query: req.query, user: req.user });
+  } catch (err) { res.status(500).send("Server Error"); }
+});
+
+router.get("/manager/daily-stock/view/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager"]), async (req, res) => {
+  try {
+    const logRes = await pool.query(`SELECT l.*, u.email FROM daily_inventory_logs l LEFT JOIN users u ON l.user_id = u.id::varchar WHERE l.id = $1`, [req.params.id]);
+    if (logRes.rows.length === 0) return res.redirect("/manager/daily-stock/history");
+    const log = logRes.rows[0];
+
+    if (req.user.role === "store_manager") {
+      const locRes = await pool.query("SELECT name FROM locations WHERE id = $1", [req.user.assigned_location_id]);
+      if (locRes.rows.length > 0 && log.location_name !== locRes.rows[0].name) return res.status(403).send("Access Denied");
+    }
+
+    const itemsRes = await pool.query(`SELECT dii.*, s.image_url FROM daily_inventory_items dii LEFT JOIN stocks s ON dii.item_name = s.name WHERE dii.log_id = $1 ORDER BY dii.category, dii.item_name`, [req.params.id]);
+    res.render("manager/view_daily_log.ejs", { title: `Log #${req.params.id}`, log: log, items: itemsRes.rows, layout: "layout" });
+  } catch (err) { res.redirect("/manager/daily-stock/history"); }
+});
+
+router.get("/manager/daily-stock/history/:id", checkAuthenticated, async (req, res) => {
+  try {
+    const logRes = await pool.query(`SELECT l.*, u.email FROM daily_inventory_logs l LEFT JOIN users u ON l.user_id = u.id::varchar WHERE l.id = $1`, [req.params.id]);
+    if (logRes.rows.length === 0) return res.status(404).send("Stock Log not found");
+    const itemsRes = await pool.query(`SELECT * FROM daily_inventory_items WHERE log_id = $1 ORDER BY category, item_name`, [req.params.id]);
+    res.render("manager/view_daily_log.ejs", { title: `Log #${req.params.id}`, log: logRes.rows[0], items: itemsRes.rows, layout: "layout" });
+  } catch (err) { res.status(500).send("Server Error"); }
+});
+
+// JSON API counterpart routes for React SPA
+router.get("/api/manager/daily-stock", checkAuthenticated, checkRole(["store_manager", "admin", "manager"]), async (req, res) => {
+  try {
+    let locId = req.user.assigned_location_id ? String(req.user.assigned_location_id) : null;
+    if (["admin", "manager"].includes(req.user.role)) {
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
       if (req.query.location) locId = String(req.query.location);
       else if (!locId) {
         const firstLoc = await pool.query("SELECT id FROM locations ORDER BY id ASC LIMIT 1");
@@ -114,15 +261,23 @@ router.get("/api/manager/daily-stock", checkAuthenticated, checkRole(["store_man
   }
 });
 
+<<<<<<< HEAD
 // Edit daily stock count details (API)
 router.get("/api/manager/daily-stock/edit/:id", checkAuthenticated, async (req, res) => {
+=======
+router.get("/api/manager/daily-stock/edit/:id", checkAuthenticated, checkRole(["store_manager", "admin", "manager"]), async (req, res) => {
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
   try {
     const logRes = await pool.query("SELECT * FROM daily_inventory_logs WHERE id = $1", [req.params.id]);
     if (logRes.rows.length === 0) return res.status(404).json({ error: "Stock Log not found" });
     const log = logRes.rows[0];
     const diffMinutes = (new Date() - new Date(log.created_at)) / 1000 / 60;
     
+<<<<<<< HEAD
     const isAdmin = req.user.role === "admin" || req.user.role === "manager" || req.user.role === "demo";
+=======
+    const isAdmin = req.user.role === "admin" || req.user.role === "manager";
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
     if (!isAdmin && !log.is_unlocked && (req.user.id != log.user_id || diffMinutes > 5)) {
       return res.status(403).json({ error: "Edit time limit expired. Ask a Manager to unlock this report." });
     }
@@ -132,13 +287,20 @@ router.get("/api/manager/daily-stock/edit/:id", checkAuthenticated, async (req, 
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+<<<<<<< HEAD
 // Get daily stock history (API)
+=======
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
 router.get("/api/manager/stock-history", checkAuthenticated, checkRole(["store_manager", "admin", "manager"]), async (req, res) => {
   try {
     let queryParams = [];
     let queryConditions = [];
     
+<<<<<<< HEAD
     if (["admin", "manager", "demo"].includes(req.user.role) && req.query.location) {
+=======
+    if (["admin", "manager"].includes(req.user.role) && req.query.location) {
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
       queryConditions.push(`l.id = $${queryParams.length + 1}`);
       queryParams.push(String(req.query.location));
     } else if (req.user.assigned_location_id) {
@@ -164,7 +326,10 @@ router.get("/api/manager/stock-history", checkAuthenticated, checkRole(["store_m
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+<<<<<<< HEAD
 // View daily stock log (API)
+=======
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
 router.get("/api/manager/daily-stock/view/:id", checkAuthenticated, checkRole(["manager", "admin", "store_manager"]), async (req, res) => {
   try {
     const logRes = await pool.query(`SELECT l.*, u.email FROM daily_inventory_logs l LEFT JOIN users u ON l.user_id = u.id::varchar WHERE l.id = $1`, [req.params.id]);

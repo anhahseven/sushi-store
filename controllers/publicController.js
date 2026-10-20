@@ -1,7 +1,11 @@
 import express from "express";
 import pool from "../config/db.js";
 import crypto from "crypto";
+<<<<<<< HEAD
 import { checkAuthenticated, checkRole } from "../middleware/auth.js";
+=======
+import { checkAuthenticated, checkRole, canAccessOrder } from "../middleware/auth.js";
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
 
 const router = express.Router();
 
@@ -72,11 +76,25 @@ router.post("/api/cart", async (req, res) => {
 router.patch("/api/cart/:id", async (req, res) => { // Update quantity (increment/decrement)
   if (!req.user) return res.status(401).json({ error: "Login required" });
   try {
+<<<<<<< HEAD
     if (req.body.action === "increment") await pool.query("UPDATE cart SET quantity = quantity + 1 WHERE id = $1", [req.params.id]);
     else if (req.body.action === "decrement") {
       const current = await pool.query("SELECT quantity FROM cart WHERE id = $1", [req.params.id]);
       if (current.rows.length > 0 && current.rows[0].quantity > 1) await pool.query("UPDATE cart SET quantity = quantity - 1 WHERE id = $1", [req.params.id]);
       else await pool.query("DELETE FROM cart WHERE id = $1", [req.params.id]);
+=======
+    const cartId = req.params.id;
+    const userId = req.user.id;
+    if (req.body.action === "increment") {
+      await pool.query("UPDATE cart SET quantity = quantity + 1 WHERE id = $1 AND user_id = $2", [cartId, userId]);
+    } else if (req.body.action === "decrement") {
+      const current = await pool.query("SELECT quantity FROM cart WHERE id = $1 AND user_id = $2", [cartId, userId]);
+      if (current.rows.length > 0 && current.rows[0].quantity > 1) {
+        await pool.query("UPDATE cart SET quantity = quantity - 1 WHERE id = $1 AND user_id = $2", [cartId, userId]);
+      } else {
+        await pool.query("DELETE FROM cart WHERE id = $1 AND user_id = $2", [cartId, userId]);
+      }
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
     }
     res.json({ message: "Updated" });
   } catch (err) {
@@ -161,4 +179,219 @@ router.post("/api/orders/request-refund/:id", checkAuthenticated, async (req, re
   } catch (err) { res.status(500).json({ error: "Server Error" }); }
 });
 
+<<<<<<< HEAD
+=======
+// --- WEBSITE EJS RENDERING ROUTES ---
+
+// Website Home Page
+router.get("/", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM products");
+    res.render("website/main/index", {
+      title: "Murakami Sushi",
+      products: result.rows,
+      layout: "layouts",
+    });
+  } catch (err) {
+    console.error("Error loading home page:", err);
+    res.render("website/main/index", {
+      title: "Murakami Sushi",
+      products: [],
+      layout: "layouts",
+    });
+  }
+});
+
+// Menu Page
+router.get("/menu", async (req, res) => {
+  try {
+    const productsRes = await pool.query("SELECT * FROM products ORDER BY id ASC");
+    const categoriesRes = await pool.query("SELECT * FROM categories ORDER BY id ASC");
+    res.render("website/menu", {
+      title: "Our Menu - Murakami Sushi",
+      products: productsRes.rows,
+      categories: categoriesRes.rows,
+      layout: "layouts",
+    });
+  } catch (err) {
+    console.error("Error loading menu:", err);
+    res.status(500).send("Error loading menu");
+  }
+});
+
+// About Page
+router.get("/about", (req, res) => {
+  res.render("website/about", { title: "About Us - Murakami Sushi", layout: "layouts" });
+});
+
+// Locations Page
+router.get("/location", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM locations ORDER BY id ASC");
+    res.render("website/location", {
+      title: "Our Locations - Murakami Sushi",
+      locations: result.rows,
+      layout: "layouts",
+    });
+  } catch (err) {
+    console.error("Error loading locations:", err);
+    res.status(500).send("Error loading locations");
+  }
+});
+
+// Offers Page
+router.get("/offers", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM products ORDER BY id DESC");
+    const discountedProducts = result.rows.filter(
+      (p) => p.discount_type && p.discount_type !== "none" && p.discount_value > 0
+    );
+    res.render("website/offers", {
+      title: "Special Offers - Murakami Sushi",
+      products: discountedProducts,
+      layout: "layouts",
+    });
+  } catch (err) {
+    console.error("Error loading offers:", err);
+    res.status(500).send("Error loading offers");
+  }
+});
+
+// Checkout Page
+router.get("/checkout", checkAuthenticated, async (req, res) => {
+  try {
+    const cartRes = await pool.query(
+      `SELECT c.id as cart_id, c.quantity, p.id as product_id, p.name, p.price, p.image_url 
+       FROM cart c 
+       JOIN products p ON c.product_id = p.id 
+       WHERE c.user_id = $1 
+       ORDER BY c.id ASC`,
+      [req.user.id]
+    );
+    const locRes = await pool.query("SELECT * FROM locations WHERE status = 'Open'");
+    res.render("website/checkout", {
+      title: "Checkout - Murakami Sushi",
+      cart: cartRes.rows,
+      locations: locRes.rows,
+      layout: "layouts",
+    });
+  } catch (err) {
+    console.error("Error loading checkout page:", err);
+    res.status(500).send("Error loading checkout");
+  }
+});
+
+// Profile Page
+router.get("/profile", checkAuthenticated, (req, res) => {
+  res.render("website/profile", { title: "My Profile - Murakami Sushi", layout: "layouts" });
+});
+
+// Login / Register Page (website/auth)
+router.get("/login", (req, res) => {
+  if (req.isAuthenticated()) {
+    return res.redirect("/");
+  }
+  res.render("website/auth", { title: "Login / Register - Murakami Sushi", layout: false });
+});
+
+router.get("/register", (req, res) => {
+  if (req.isAuthenticated()) {
+    return res.redirect("/");
+  }
+  res.render("website/auth", { title: "Login / Register - Murakami Sushi", layout: false });
+});
+
+// Staff Menu Page
+router.get("/staff/menu", checkAuthenticated, checkRole(["manager", "admin", "store_manager", "staff", "cashier"]), async (req, res) => {
+  try {
+    const productsRes = await pool.query("SELECT * FROM products ORDER BY id ASC");
+    const categoriesRes = await pool.query("SELECT * FROM categories ORDER BY id ASC");
+    res.render("website/menu_staff", {
+      title: "Staff POS - Murakami Sushi",
+      products: productsRes.rows,
+      categories: categoriesRes.rows,
+      layout: "layouts",
+    });
+  } catch (err) {
+    console.error("Error loading staff menu:", err);
+    res.status(500).send("Error loading staff menu");
+  }
+});
+
+// Orders List Page
+router.get("/orders", checkAuthenticated, async (req, res) => {
+  if (typeof req.user.id === "string" && req.user.id.startsWith("env-")) {
+    return res.render("orders", {
+      title: "My Orders - Murakami Sushi",
+      orders: [],
+      layout: "layouts",
+    });
+  }
+  try {
+    const result = await pool.query(
+      "SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC",
+      [req.user.id]
+    );
+    res.render("orders", {
+      title: "My Orders - Murakami Sushi",
+      orders: result.rows,
+      layout: "layouts", // Use layouts.ejs layout for the website navbar
+    });
+  } catch (err) {
+    console.error("Error loading orders page:", err);
+    res.status(500).send("Error loading orders");
+  }
+});
+
+// Cancel Order Request (Form POST)
+router.post("/orders/request-cancel/:id", checkAuthenticated, async (req, res) => {
+  try {
+    await pool.query(
+      "UPDATE orders SET status = 'Cancel Requested' WHERE id = $1 AND user_id = $2 AND status = 'Pending'",
+      [req.params.id, req.user.id]
+    );
+    res.redirect("/orders");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error requesting cancellation");
+  }
+});
+
+// Refund Order Request (Form POST)
+router.post("/orders/request-refund/:id", checkAuthenticated, async (req, res) => {
+  try {
+    await pool.query(
+      "UPDATE orders SET status = 'Refund Requested' WHERE id = $1 AND user_id = $2 AND status = 'Completed'",
+      [req.params.id, req.user.id]
+    );
+    res.redirect("/orders");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error requesting refund");
+  }
+});
+
+// GET: Fetch payment details as JSON
+router.get("/api/payment/:id", checkAuthenticated, async (req, res) => {
+  try {
+    const orderRes = await pool.query("SELECT * FROM orders WHERE id = $1", [req.params.id]);
+    if (orderRes.rows.length === 0) return res.status(404).json({ error: "Order not found" });
+    const order = orderRes.rows[0];
+
+    // Verify user owns this order or has staff/admin privileges
+    if (!canAccessOrder(req.user, order)) {
+      return res.status(403).json({ error: "Access Denied" });
+    }
+
+    res.json({
+      orderId: order.id,
+      amount: parseFloat(order.total_price).toFixed(2),
+      status: order.status
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
 export default router;

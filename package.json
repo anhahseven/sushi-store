@@ -2,6 +2,7 @@
   "name": "assigment",
   "version": "1.0.0",
   "description": "",
+<<<<<<< HEAD
   "homepage": "https://github.com/SokThavireak/sushi_store#readme",
   "bugs": {
     "url": "https://github.com/SokThavireak/sushi_store/issues"
@@ -9,6 +10,15 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SokThavireak/sushi_store.git"
+=======
+  "homepage": "https://github.com/anhahseven/sushi-store#readme",
+  "bugs": {
+    "url": "https://github.com/anhahseven/sushi-store/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anhahseven/sushi-store.git"
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
   },
   "license": "ISC",
   "author": "",
@@ -17,8 +27,11 @@
   "scripts": {
     "start": "node index.js",
     "db:import": "node scripts/importDb.js",
+<<<<<<< HEAD
     "build": "cd client && npm install --include=dev && npm run build",
     "postinstall": "npm run build",
+=======
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -28,7 +41,13 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^17.2.3",
+<<<<<<< HEAD
     "express": "^5.2.1",
+=======
+    "ejs": "^3.1.10",
+    "express": "^5.2.1",
+    "express-ejs-layouts": "^2.5.1",
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
     "express-session": "^1.18.2",
     "method-override": "^3.0.0",
     "multer": "^2.0.2",

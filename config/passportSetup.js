@@ -3,6 +3,10 @@ import { Strategy as LocalStrategy } from "passport-local";
 import GoogleStrategy from "passport-google-oauth2";
 import bcrypt from "bcrypt";
 import pool from "./db.js";
+<<<<<<< HEAD
+=======
+import { timingSafeCompare } from "../middleware/security.js";
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
 
 const baseUrl = process.env.BASE_URL || `https://sushi-store-zplg.onrender.com`;
 
@@ -20,7 +24,11 @@ export default function setupPassport() {
       const cleanUsername = username.trim();
       const adminIndex = adminEmails.indexOf(cleanUsername);
 
+<<<<<<< HEAD
       if (adminIndex !== -1 && password === adminPasswords[adminIndex]) {
+=======
+      if (adminIndex !== -1 && adminPasswords[adminIndex] && timingSafeCompare(password, adminPasswords[adminIndex])) {
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
         return cb(null, {
           id: `env-admin-${adminIndex}`,
           email: cleanUsername,
@@ -28,6 +36,7 @@ export default function setupPassport() {
         });
       }
 
+<<<<<<< HEAD
       if (cleanUsername === "demo@sushistore.com") {
         if (password === "demo1234") {
           return cb(null, {
@@ -40,17 +49,32 @@ export default function setupPassport() {
         }
       }
 
+=======
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
       try {
         const result = await pool.query("SELECT * FROM users WHERE email = $1 ", [cleanUsername]);
         
         if (result.rows.length > 0) {
           const user = result.rows[0];
           bcrypt.compare(password, user.password, (err, valid) => {
+<<<<<<< HEAD
             if (valid) return cb(null, user);
             else return cb(null, false, { message: "Invalid password" });
           });
         } else {
           return cb(null, false, { message: "User not found" });
+=======
+            if (valid) {
+              const safeUser = { ...user };
+              delete safeUser.password;
+              return cb(null, safeUser);
+            } else {
+              return cb(null, false, { message: "Invalid credentials" });
+            }
+          });
+        } else {
+          return cb(null, false, { message: "Invalid credentials" });
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
         }
       } catch (err) {
         return cb(err);

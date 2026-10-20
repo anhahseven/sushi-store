@@ -143,6 +143,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+<<<<<<< HEAD
 
 # AI / Assistant instructions & configs
 GEMINI.md
@@ -153,3 +154,5 @@ CLAUDE.md
 .cursor/
 .cursorrules
 .copilot/
+=======
+>>>>>>> 56d8cb1 (Security audit fixes: IDOR patch, rate limiting, and POS audit logs)
